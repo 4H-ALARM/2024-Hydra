@@ -1,16 +1,13 @@
 package frc.robot.classes.Limelight;
 
 
-import edu.wpi.first.apriltag.AprilTag;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.lib.Constants;
 import frc.robot.classes.Limelight.LimelightHelpers.LimelightResults;
-import frc.robot.classes.Limelight.LimelightHelpers;
+import frc.lib.util.Tags;
 
 
 public class LimelightController {
@@ -35,11 +32,11 @@ public class LimelightController {
         return LimelightHelpers.getTX(llName);
     }
 
-    public void switchMegaTagPipline() {
+    public void switchShooterRedPipline() {
         LimelightHelpers.setPipelineIndex(llName, 0);
     }
 
-    public void switchSingleTagPipline() {
+    public void switchShooterBluePipline() {
         LimelightHelpers.setPipelineIndex(llName, 1);
     }
 
@@ -48,15 +45,28 @@ public class LimelightController {
         return this.llresults;
     }
 
-    public double getYawToSpeaker() {
-        Pose3d pose = LimelightHelpers.getBotPose3d_TargetSpace(llName);
+    public double getYawToShootTarget() {
+
         double txToSpeaker = LimelightHelpers.getTX(llName);
-        return txToSpeaker/20;//-pose.getRotation().getZ();
+
+
+        return txToSpeaker/20;
     }
 
     public double distanceToSpeaker() {
         Pose3d poseToTags = LimelightHelpers.getBotPose3d_TargetSpace(llName);
         return poseToTags.getZ();//poseToTag.getY();
+    }
+
+    public double tagsSeen() {
+        double targets  = NetworkTableInstance.getDefault().getTable(llName).getEntry("tid").getDouble(0);
+        SmartDashboard.putNumber("id", targets);
+        return targets;
+    }
+
+    public double twoTagsSeen() {
+        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+        return limelightMeasurement.tagCount;
     }
 
     public double getYawToNote() {

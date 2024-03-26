@@ -26,6 +26,8 @@ import frc.robot.hybrid.HybridModes;
 import frc.robot.hybrid.ControlVector;
 import frc.robot.subsystems.*;
 
+import java.sql.Driver;
+
 public class RobotContainerTeleop {
     /* Controllers */
     private final CommandXboxController pilot = new CommandXboxController(0);
@@ -58,7 +60,7 @@ public class RobotContainerTeleop {
     private final CpxSet cpxOn;
     private final CpxSet cpxOff;
 
-    private final AmpPosition ampPosition;
+    DriverStation.Alliance alliance;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -67,8 +69,15 @@ public class RobotContainerTeleop {
 
         /* Util Classes */
         colorSensorController = new ColorSensorController(Constants.colorSensorConfig);
-
         Pigeon2 gyro = new Pigeon2(krakenTalonConstants.Swerve.pigeonID);
+
+        /* Alliance */
+        if (DriverStation.getAlliance().isPresent()) {
+            alliance = DriverStation.getAlliance().get();
+        } else {
+            alliance = DriverStation.Alliance.Blue;
+        }
+
 
         /* Subsystems */
         SwerveSubsystem = new Swerve(robotConfig.ctreConfigs, gyro);
@@ -78,7 +87,7 @@ public class RobotContainerTeleop {
         IndexerSubsystem = new Indexer(Constants.indexerConfig);
         ClimberSubsystem = new Climber(Constants.climberConfig, robotConfig.dashboardConfig);
         LightSubsystem = new Light(Constants.lightConfig, colorSensorController);
-        VisionSubsystem = new Vision(Constants.visionConfig);
+        VisionSubsystem = new Vision(Constants.visionConfig, alliance);
         CPXSubsystem = new CPX(3); // TODO create CpxConfig
 
         /* State Machine */
@@ -92,8 +101,6 @@ public class RobotContainerTeleop {
         rejectNoteIntakeCommand = new RejectNoteIntake(IntakeSubsystem);
         cpxOn = new CpxSet(CPXSubsystem, true);
         cpxOff = new CpxSet(CPXSubsystem, false);
-
-        ampPosition = new AmpPosition(ArmSubsystem);
 
         /* Command Constructor for Autos */
         //autoCommandsConstructor = new AutoCommands(SwerveSubsystem, ArmSubsystem, IndexerSubsystem, ShooterSubsystem, IntakeSubsystem, DriverStation.getAlliance().get());
@@ -232,8 +239,6 @@ public class RobotContainerTeleop {
         copilot.rightBumper().onTrue(manualFeedBackCommand.withTimeout(0.7));
         copilot.x().onTrue(cpxOn);
         copilot.b().onTrue(cpxOff);
-
-        copilot.a().whileTrue(ampPosition);
     }
     public Command getAutonomousCommand(AutonomousOptions plan) {
         // switch (plan) {

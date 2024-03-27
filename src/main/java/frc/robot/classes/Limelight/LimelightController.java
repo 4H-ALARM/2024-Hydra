@@ -30,16 +30,16 @@ public class LimelightController {
     }
 
     public void switchDoubleTagShooterRedPipline() {
-        LimelightHelpers.setPipelineIndex(llName, 1);
+        LimelightHelpers.setPipelineIndex(llName, 2);
     }
     public void switchSingleTagShooterRedPipline() {
         LimelightHelpers.setPipelineIndex(llName, 0);
     }
     public void switchSingleTagShooterBluePipline() {
-        LimelightHelpers.setPipelineIndex(llName, 3);
+        LimelightHelpers.setPipelineIndex(llName, 1);
     }
     public void switchDoubleTagShooterBluePipline() {
-        LimelightHelpers.setPipelineIndex(llName, 4);
+        LimelightHelpers.setPipelineIndex(llName, 3);
     }
 
     public LimelightResults getResults() {

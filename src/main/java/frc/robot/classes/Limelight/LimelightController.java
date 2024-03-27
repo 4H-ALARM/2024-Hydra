@@ -67,7 +67,8 @@ public class LimelightController {
     }
 
     public double tagsDetectedCount() {
-        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue(llName);
+        SmartDashboard.putNumber("tags seen", limelightMeasurement.tagCount);
         return limelightMeasurement.tagCount;
     }
 
@@ -80,6 +81,11 @@ public class LimelightController {
 //        }
         double limelightDegrees = LimelightHelpers.getTX(llName);
         return limelightDegrees / 27.0;
+    }
+
+
+    public double getLimelightPipeline() {
+        return LimelightHelpers.getCurrentPipelineIndex(llName);
     }
 
 

@@ -33,7 +33,7 @@ public class Vision {
         this.config = visionConfig;
         this.shootLimelight = new LimelightController(config.shootLimelightName);
         this.intakeLimelight = new LimelightController(config.intakeLimelightName);
-        this.shootPID = new PIDController(1.25, 0.01, 0.2);
+        this.shootPID = new PIDController(1.125, 0.01, 0.2); //p used to be 1.25
 //        this.intakePID = new PIDController(0.01, 0, 0);
 //        this.intakePID = new CustomPid(0.25, 0.2, 0);
         this.intakePID = new PIDController(2.0, 0.01, .20);
@@ -48,6 +48,8 @@ public class Vision {
             shootLimelight.switchSingleTagShooterRedPipline();
             this.isBlue = false;
         }
+
+        SmartDashboard.putBoolean("isBluealliance", isBlue);
     }
 
     /**
@@ -97,6 +99,7 @@ public class Vision {
         angleToShootAngle = shootPID.calculate(shootAverage.getOutput(), shootSetPoint);
         SmartDashboard.putNumber("intakePID", aimRotationPower);
         SmartDashboard.putNumber("shootPID", aimRotationPower);
+        SmartDashboard.putNumber("pipelineIndex", shootLimelight.getLimelightPipeline());
 
     }
 }

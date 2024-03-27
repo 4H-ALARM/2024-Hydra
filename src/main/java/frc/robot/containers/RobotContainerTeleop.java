@@ -230,12 +230,12 @@ public class RobotContainerTeleop {
         pilot.leftTrigger().onTrue(intakeCommand);
 //        pilot.leftTrigger().onTrue(new InstantCommand(robotStateMachine::toggleIntaking));
         pilot.rightTrigger().whileTrue(prepareShootCommand);
+        pilot.y().onTrue(new InstantCommand(SwerveSubsystem::zeroHeading));
         pilot.rightBumper().onTrue(feedNoteCommand.withTimeout(1));
 
 
         /* Copilot Buttons */
         copilot.rightBumper().onTrue(manualFeedBackCommand.withTimeout(0.7));
-        copilot.y().onTrue(new InstantCommand(SwerveSubsystem::zeroHeading));
         copilot.a().whileTrue(rejectNoteIntakeCommand);
     }
     public Command getAutonomousCommand(AutonomousOptions plan) {

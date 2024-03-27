@@ -27,6 +27,7 @@ public class Vision {
     private final VisionConfig config;
 
     private double shootSetPoint = 0;
+    private boolean isBlue;
 
     public Vision(VisionConfig visionConfig, DriverStation.Alliance alliance) {
         this.config = visionConfig;
@@ -39,10 +40,13 @@ public class Vision {
         this.aimRotationPower = 0.0;
         this.angleToShootAngle = 0.0;
         this.tags = new Tags();
+
         if (alliance == DriverStation.Alliance.Blue) {
-            shootLimelight.switchShooterBluePipline();
+            shootLimelight.switchSingleTagShooterBluePipline();
+            this.isBlue = true;
         } else {
-            shootLimelight.switchShooterRedPipline();
+            shootLimelight.switchSingleTagShooterRedPipline();
+            this.isBlue = false;
         }
     }
 
@@ -60,27 +64,39 @@ public class Vision {
 
     public void periodic() {
         shootSetPoint = 0;
-        if (shootLimelight.twoTagsSeen() < 2) {
-            if (shootLimelight.tagsSeen() == this.tags.Blue_Off_Center_Tag()) {
+//        if (shootLimelight.twoTagsSeen() > 2) {
+//            if (shootLimelight.tagsSeen() == this.tags.Blue_Off_Center_Tag()) {
+//                shootSetPoint = config.offset;
+//            }
+//            if (shootLimelight.tagsSeen() == this.tags.Red_Off_Center_Tag()) {
+//                shootSetPoint = -config.offset;
+//            }
+//        }
+        if (shootLimelight.tagsDetectedCount() >=2) {
+            if (this.isBlue) {
+                shootLimelight.switchDoubleTagShooterBluePipline();
                 shootSetPoint = config.offset;
             }
-            if (shootLimelight.tagsSeen() == this.tags.Red_Off_Center_Tag()) {
+            else {
+                shootLimelight.switchDoubleTagShooterRedPipline();
                 shootSetPoint = -config.offset;
             }
         }
+        if (shootLimelight.tagsDetectedCount() <2) {
+            if (this.isBlue) {
+                shootLimelight.switchSingleTagShooterBluePipline();
+            }
+            else {
+                shootLimelight.switchSingleTagShooterRedPipline();
+            }
+        }
         intakeAverage.addInput(intakeLimelight.getYawToNote());
-<<<<<<< HEAD
-        shootAverage.addInput(shootLimelight.getYawToSpeaker());
+
+        shootAverage.addInput(shootLimelight.getYawToShootTarget());
         aimRotationPower = intakePID.calculate(intakeAverage.getOutput(), 0);
-        angleToShootAngle = shootPID.calculate(shootAverage.getOutput(), 0);
+        angleToShootAngle = shootPID.calculate(shootAverage.getOutput(), shootSetPoint);
         SmartDashboard.putNumber("intakePID", aimRotationPower);
         SmartDashboard.putNumber("shootPID", aimRotationPower);
-=======
-        shootAverage.addInput(shootLimelight.getYawToShootTarget());
-        angleToNote = intakePID.calculate(intakeAverage.getOutput(), 0);
-        angleToShootAngle = shootPID.calculate(shootAverage.getOutput(), shootSetPoint);
-        SmartDashboard.putNumber("intakePID", angleToNote);
-        SmartDashboard.putNumber("shootPID", angleToNote);
->>>>>>> f261a94 (offsets?)
+
     }
 }

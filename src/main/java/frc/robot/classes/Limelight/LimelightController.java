@@ -2,12 +2,9 @@ package frc.robot.classes.Limelight;
 
 
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.classes.Limelight.LimelightHelpers.LimelightResults;
-import frc.lib.util.Tags;
 
 
 public class LimelightController {
@@ -32,12 +29,17 @@ public class LimelightController {
         return LimelightHelpers.getTX(llName);
     }
 
-    public void switchShooterRedPipline() {
+    public void switchDoubleTagShooterRedPipline() {
+        LimelightHelpers.setPipelineIndex(llName, 1);
+    }
+    public void switchSingleTagShooterRedPipline() {
         LimelightHelpers.setPipelineIndex(llName, 0);
     }
-
-    public void switchShooterBluePipline() {
-        LimelightHelpers.setPipelineIndex(llName, 1);
+    public void switchSingleTagShooterBluePipline() {
+        LimelightHelpers.setPipelineIndex(llName, 3);
+    }
+    public void switchDoubleTagShooterBluePipline() {
+        LimelightHelpers.setPipelineIndex(llName, 4);
     }
 
     public LimelightResults getResults() {
@@ -64,7 +66,7 @@ public class LimelightController {
         return targets;
     }
 
-    public double twoTagsSeen() {
+    public double tagsDetectedCount() {
         LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
         return limelightMeasurement.tagCount;
     }

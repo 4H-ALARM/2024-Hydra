@@ -4,6 +4,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -60,7 +61,7 @@ public class RobotContainerTeleop {
     private final CpxSet cpxOn;
     private final CpxSet cpxOff;
 
-    DriverStation.Alliance alliance;
+    private DriverStation.Alliance alliance = DriverStation.Alliance.Blue;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -74,8 +75,6 @@ public class RobotContainerTeleop {
         /* Alliance */
         if (DriverStation.getAlliance().isPresent()) {
             alliance = DriverStation.getAlliance().get();
-        } else {
-            alliance = DriverStation.Alliance.Blue;
         }
 
 
@@ -219,9 +218,9 @@ public class RobotContainerTeleop {
             ArmSubsystem.moveArm(control.armPower());
          }, ArmSubsystem));
 
-//         LightSubsystem.setDefaultCommand(
-//                 new InstantCommand(LightSubsystem::lightControl, LightSubsystem)
-//         );
+         LightSubsystem.setDefaultCommand(
+                 new InstantCommand(LightSubsystem::lightControl, LightSubsystem)
+         );
 
         configureButtonBindings();
     }

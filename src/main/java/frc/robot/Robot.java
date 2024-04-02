@@ -8,7 +8,7 @@ import frc.lib.Constants.AutonomousOptions;
 import frc.lib.CtreConfigs;
 import frc.lib.config.DashboardConfig;
 import frc.lib.config.RobotConfig;
-import frc.robot.containers.RobotContainerTeleop;
+import frc.robot.containers.RobotContainer;
 import edu.wpi.first.wpilibj.TimedRobot;
 public class Robot extends TimedRobot {
     public final CtreConfigs ctreConfigs = new CtreConfigs();
@@ -17,7 +17,7 @@ public class Robot extends TimedRobot {
     private Command m_autonomousCommand1;
     private Command m_autonomousCommand2;
     private Command m_InitCommand;
-    private RobotContainerTeleop mRobotContainer;
+    private RobotContainer mRobotContainer;
 
     private final SendableChooser<AutonomousOptions> positionChooser = new SendableChooser<>();
 
@@ -29,17 +29,17 @@ public class Robot extends TimedRobot {
     public void robotInit() {
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
-        positionChooser.setDefaultOption("TwoNoteCenter", AutonomousOptions.TWO_NOTE_CENTER);
-        positionChooser.addOption("ShootNote", AutonomousOptions.SHOOT_NOTE);
-        positionChooser.addOption("shootandmovebackright side", AutonomousOptions.RIGHTSPEAKERSIDESHOOTANDMOVEBACK);
-        positionChooser.addOption("twoNoteCenterAutoWithBackup", AutonomousOptions.SHOOT_NOTE_MOVEBACK);
-        positionChooser.addOption("ThreeNoteRight", AutonomousOptions.THREE_NOTES_RIGHT);
-        positionChooser.addOption("ThreeNoteLeft", AutonomousOptions.THREE_NOTES_LEFT);
-        positionChooser.addOption("FourNoteAuto", AutonomousOptions.FOUR_NOTES);
+        AutonomousOptions.registerChooser(positionChooser);
+        // positionChooser.setDefaultOption("TwoNoteCenter", AutonomousOptions.TWO_NOTE_CENTER);
+        // positionChooser.addOption("ShootNote", AutonomousOptions.SHOOT_NOTE);
+        // positionChooser.addOption("twoNoteCenterAutoWithBackup", AutonomousOptions.SHOOT_NOTE_MOVEBACK);
+        // positionChooser.addOption("ThreeNoteRight", AutonomousOptions.THREE_NOTES_RIGHT);
+        // positionChooser.addOption("ThreeNoteLeft", AutonomousOptions.THREE_NOTES_LEFT);
+        // positionChooser.addOption("FourNoteAuto", AutonomousOptions.FOUR_NOTES);
 
         SmartDashboard.putData("AutonomousSelection", positionChooser);
         SmartDashboard.putString("Version", "2");
-        mRobotContainer = new RobotContainerTeleop(robotConfig);
+        mRobotContainer = new RobotContainer(robotConfig);
 
     }
 
@@ -67,7 +67,7 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledPeriodic() {}
 
-    /** This autonomous runs the autonomous command selected by your {@link RobotContainerTeleop} class. */
+    /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
     @Override
     public void autonomousInit() {
         AutonomousOptions sp = positionChooser.getSelected();

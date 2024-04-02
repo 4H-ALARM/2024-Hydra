@@ -138,7 +138,7 @@ public class Vision {
                 shootsetpoint=-(shootoffset*4);
             } 
             if (DriverStation.getAlliance().get() == Alliance.Blue) {
-                shootsetpoint=(shootoffset*4);
+                shootsetpoint=-(shootoffset*4);
             }
         }
         

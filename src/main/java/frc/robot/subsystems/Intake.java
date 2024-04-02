@@ -24,6 +24,10 @@ public class Intake extends SubsystemBase {
         intakeMotor.set(this.config.intakeMotorSpeed);
     }
 
+    public void setSpeed(double speed) {
+        intakeMotor.set(speed);
+    }
+
     public void rejectNote() {
         intakeMotor.set(-this.config.intakeMotorSpeed);
     }

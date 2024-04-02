@@ -5,9 +5,15 @@ import frc.robot.subsystems.Intake;
 
 public class IntakeNote extends Command {
     Intake intake;
+    private double speed;
 
     public IntakeNote(Intake subsystem) {
+        this(subsystem, 0);
+    }
+
+    public IntakeNote(Intake subsystem, double speed) {
         intake = subsystem;
+        this.speed = speed;
         addRequirements(intake);
     }
 

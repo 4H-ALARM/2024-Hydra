@@ -2,7 +2,6 @@ package frc.robot.containers;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
@@ -21,7 +20,8 @@ import frc.lib.config.krakenTalonConstants;
 import frc.robot.classes.ColorSensorController;
 import frc.robot.classes.Pigeon2Handler;
 import frc.robot.classes.ToggleHandler;
-import frc.robot.commands.Arm.AmpPosition;
+import frc.robot.commands.SendBackCommand;
+import frc.robot.commands.WaitCommand;
 import frc.robot.commands.Auto.RevAuto;
 import frc.robot.commands.Auto.ShootAuto;
 import frc.robot.commands.CPX.CpxSet;
@@ -33,19 +33,22 @@ import frc.robot.commands.CommandGroups.ShootCommands.PrepareShootCommandGroup;
 import frc.robot.commands.Drive.AutoSwerve;
 import frc.robot.commands.Drive.HybridSwerve;
 
+//import frc.robot.commands.HybridAuto.AutoDrive;
+import frc.robot.commands.HybridAuto.AutoDrive;
+import frc.robot.commands.HybridAuto.AutoVectors;
 import frc.robot.commands.Indexer.FeedNote;
+import frc.robot.commands.Indexer.IndexNote;
 import frc.robot.commands.Intake.IntakeNote;
 import frc.robot.commands.Intake.RejectNoteIntake;
 import frc.robot.commands.Shooter.PassNote;
 import frc.robot.hybrid.BlendedControl;
-import frc.robot.hybrid.HybridModes;
 import frc.robot.hybrid.ControlVector;
 import frc.robot.subsystems.*;
 
-import java.sql.Driver;
-import java.util.function.DoubleSupplier;
+public class RobotContainer {
+    public static final double CLOCKWISE = 1.0;
+    public static final double COUNTER_CLOCKWISE = -1.0;
 
-public class RobotContainerTeleop {
     /* Controllers */
     private final CommandXboxController pilot = new CommandXboxController(0);
     private final CommandXboxController copilot = new CommandXboxController(1);
@@ -114,10 +117,16 @@ public class RobotContainerTeleop {
 
     private final ShuffleNote shuffleNote;
 
+
+    private ControlVector autoDriveControlVector;
+    private ControlVector autoDriveInfluenceVector;
+    private ControlVector autoIntakeAimInfluence;
+    private ControlVector autoShootAimInfluence;
+
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
-    public RobotContainerTeleop(RobotConfig robotConfig) {
+    public RobotContainer(RobotConfig robotConfig) {
 
         /* Util Classes */
         shootAimOverideToggle = new ToggleHandler();
@@ -157,32 +166,26 @@ public class RobotContainerTeleop {
         secondprepareShootCommand = new PrepareShootCommandGroup(ArmSubsystem, IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, pilot);
         passNoteCommand = new PassNote(ShooterSubsystem);
 
-
         /* Command Constructor for Autos */
         //autoCommandsConstructor = new AutoCommands(SwerveSubsystem, ArmSubsystem, IndexerSubsystem, ShooterSubsystem, IntakeSubsystem, DriverStation.getAlliance().get());
 
-        // Mode names in variables to prevent typos
-        String modeDriverActive = "DriverControlActive";
-        String modeDriverInactive = "DriverControlInactive";
-        String modeIntakeAimInactive = "IntakeAimInactive";
-        String modeIntakeAimActive = "IntakeAimActive";
-        String modeShootAimInactive = "ShootAimInactive";
-        String modeShootAimActive = "ShootAimActive";
-        String modeShootDistanceInactive = "ShootDistanceInactive";
-        String modeShootDistanceActive = "ShootDistanceActive";
+        // Influence vectors for blended control
+        ControlVector driverActive = ControlVector.fromFieldRelative(1.0, 1.0, 1.0).setSwerveRobotX(0.5).setSwerveRobotY(0.5);
+        ControlVector driverInactive = ControlVector.fromFieldRelative(1.0, 0.5, 0.5).setSwerveRobotX(0.5).setSwerveRobotY(0.5);
+        ControlVector intakeAimInactive = ControlVector.fromFieldRelative(0.0, 0.0, 0.0);
+        ControlVector intakeAimActive = ControlVector.fromFieldRelative(0.0, 0.0, 1.0);
+        ControlVector shootAimInactive = ControlVector.fromFieldRelative(0.0, 0.0, 0.0);
+        ControlVector shootAimActive = ControlVector.fromFieldRelative(0.0, 0.0, 1.0);
 
+        // A ControlVector that is updated by Auto Commands during auto mode
+        autoDriveControlVector = new ControlVector();
+        autoDriveInfluenceVector = new ControlVector();
+        autoIntakeAimInfluence = new ControlVector();
+        autoShootAimInfluence = new ControlVector();
+//        Command hybridAuto = new ScoreCenterNote(autoControlVector, autoIntakeAimInfluence, autoShootAimInfluence);
 
-        // Each mode describes an amount of influence that may be applied to each control
-        HybridModes modes = new HybridModes();
-        modes.addMode(modeDriverActive, ControlVector.fromFieldRelative(1.0, 1.0, 1.0).setSwerveRobotX(0.5).setSwerveRobotY(0.5));
-        modes.addMode(modeDriverInactive, ControlVector.fromFieldRelative(1.0, 0.5, 0.5).setSwerveRobotX(0.5).setSwerveRobotY(0.5));
-        modes.addMode(modeIntakeAimInactive, ControlVector.fromFieldRelative(0.0, 0.0, 0.0));
-        modes.addMode(modeIntakeAimActive, ControlVector.fromFieldRelative(0.0, 0.0, 1.0));
-        modes.addMode(modeShootAimInactive, ControlVector.fromFieldRelative(0.0, 0.0, 0.0));
-        modes.addMode(modeShootAimActive, ControlVector.fromFieldRelative(0.0, 0.0, 1.0));
-        // modes.addMode(modeShootDistanceInactive, ControlVector.fromRobotRelative(0, 0, 0));
-        // modes.addMode(modeShootDistanceActive, ControlVector.fromRobotRelative(0,1, 0));
-
+//        Command autoDrive = new AutoDrive(autoControlVector);
+//        Command autoDrive2 = new InstantCommand(() -> autoControlVector.setSwerveRobotX(0.5));
 
         // Each entry in the BlendedControl contributes some output to the Robot's movements
         BlendedControl blendedControl = new BlendedControl();
@@ -209,68 +212,68 @@ public class RobotContainerTeleop {
                 },
                 // TValue describes how much influence the Teleop Driver component has
                 () -> {
-                    double aimT = MathUtil.applyDeadband(pilot.getRawAxis(LeftTriggerAxis), 0.1);
-                    ControlVector aimBlend = modes.interpolate(modeDriverActive, modeDriverInactive, aimT);
+                    if (DriverStation.isAutonomous()) {
+                        // In auto mode, drive component has zero influence
+                        return new ControlVector();
+                    }
 
+                    double aimT = MathUtil.applyDeadband(pilot.getRawAxis(LeftTriggerAxis), 0.1);
                     double armT = ArmSubsystem.percentRaised();
-                    ControlVector armBlend = aimBlend.interpolate(ControlVector.fromFieldRelative(0.25,0.25,0.25), armT);
-                    return armBlend;
+                    ControlVector blend = driverActive.interpolate(driverInactive, aimT)
+                            .interpolate(ControlVector.fromFieldRelative(0.25,0.25,0.25), armT);
+
+                    return blend;
+                }
+
+        );
+
+        // Input from autonomous planner, only active in auto mode
+        blendedControl.addComponent(
+                () -> {
+                    return autoDriveControlVector;
+                },
+                () -> {
+                    return autoDriveInfluenceVector;
                 }
         );
+
+        // Component for auto-aiming intake at note
         blendedControl.addComponent(
                 () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getNoteAimRotationPower()),
                 () -> {
+                    if (DriverStation.isAutonomous()) {
+                        return autoIntakeAimInfluence;
+                    }
+
                     double t = MathUtil.applyDeadband(pilot.getRawAxis(LeftTriggerAxis), 0.1);
                     if (intakeAimOverideToggle.get()) {
                         t=0;
                     }
-                    return modes.interpolate(modeIntakeAimInactive, modeIntakeAimActive, t);
+                    return intakeAimInactive.interpolate(intakeAimActive, t);
                 }
         );
         blendedControl.addComponent(
                 () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getAngleToShootAngle()),
                 () -> {
+                    if (DriverStation.isAutonomous()) {
+                        return autoShootAimInfluence;
+                    }
                     double t = 0;
                     double t1 = MathUtil.applyDeadband(pilot.getRawAxis(RightTriggerAxis), 0.1);
                     double t2 = MathUtil.applyDeadband(copilot.getRawAxis(RightTriggerAxis), 0.1);
                     SmartDashboard.putBoolean("modeIntakeAimActive", shootAimOverideToggle.get());
+
                     if (shootAimOverideToggle.get()) {
                         t = 0;
                     } else {
                         t = (t1 > t2) ? t1 : t2;
                     }
-                    return modes.interpolate(modeShootAimInactive, modeShootAimActive, t);
+
+                    return shootAimInactive.interpolate(shootAimActive, t);
                 }
         );
 
-        // blendedControl.addComponent(
-        //         () -> ControlVector.fromRobotRelative(0, VisionSubsystem.getAutoApproachPower(), 0),
-        //         () -> {
-        //             double t = MathUtil.applyDeadband(pilot.getRightTriggerAxis(), 0.2);
-        //             if (shortRangeOverrideToggle.get()) {
-        //                 t = 0;
-        //             }
-        //             ControlVector control = modes.interpolate(modeShootDistanceInactive, modeShootDistanceActive, t);
-        //             return control;
-        //         }
-        // );
-        PIDController gyroController = new PIDController(.1,0,0);
-        blendedControl.addComponent(
-                () -> {
-                    double rotation = gyroController.calculate(gyro.getRotation2d().getDegrees(),0);;
-                    return ControlVector.fromFieldRelative(0,0,rotation);
-                },
-                () -> {
-                    boolean active = false;
-                    if (active){
-                        // Full rotation control from gyro when D-Down
-                        return new ControlVector().setSwerveRotation(1);
-                    } else {
-                        // No rotation control from gyro when no D-Down
-                        return new ControlVector().setSwerveRotation(0);
-                    }
-                }
-        );
+
 
         // Long range auto-aiming: Lifting the arm
         blendedControl.addComponent(
@@ -312,7 +315,6 @@ public class RobotContainerTeleop {
         ArmSubsystem.setDefaultCommand(new InstantCommand(() -> {
             ControlVector control = blendedControl.solve();
             ArmSubsystem.moveArm(control.armPower());
-//             ArmSubsystem.moveArm(MathUtil.applyDeadband(copilot.getRawAxis(LeftYAxis), 0.1));
         }, ArmSubsystem));
 
         configureButtonBindings();
@@ -337,15 +339,11 @@ public class RobotContainerTeleop {
         copilotaButton.onTrue(shuffleNote);
         
     }
+
     public Command getAutonomousCommand(AutonomousOptions plan) {
         switch (plan) {
-            // case SHOOT_NOTE_MOVEBACK:
-            //     return 
-            // case RIGHTSPEAKERSIDESHOOTANDMOVEBACK:
-            //     return 
-
             case SHOOT_NOTE:
-                return shootNote();
+                return shoot();
             case TWO_NOTE_CENTER:
                 return twoNoteCenterAuto();
             case THREE_NOTES_RIGHT:
@@ -354,126 +352,231 @@ public class RobotContainerTeleop {
                 return threeNoteLeftAuto();
             case FOUR_NOTES:
                 return fourNoteAuto();
+            case SEEK_NOTE:
+                return seekNote();
+            case SEEK_PICKUP_NOTE:
+                return seekPickupNote();
+            case SEEK_SPEAKER:
+                return seekSpeaker();
+            case DEBUG_DRIVE:
+                return debugDrive();
+            case SHUFFLE:
+                return shuffle();
+            case SHOOT:
+                return shoot();
+            case PICKUP:
+                return pickup();
             default:
-                return shootNote();
+                return shoot();
         }
     }
-
 
     public void robotPeriodic() {
         VisionSubsystem.periodic();
     }
 
     public Command twoNoteCenterAuto() {
-        return new SequentialCommandGroup(shootNote(),scoreCenterNote());
+        return new SequentialCommandGroup(
+            shoot(),
+            scoreCenterNote()
+        );
     }
 
     public Command threeNoteLeftAuto() {
-        return new SequentialCommandGroup(shootNote(),scoreCenterNote(), scoreLeftNote());
+        return new SequentialCommandGroup(
+            shoot(),
+            scoreCenterNote(),
+            scoreLeftNote()
+        );
     }
 
     public Command threeNoteRightAuto() {
-        return new SequentialCommandGroup(shootNote(),scoreCenterNote(), scoreRightNote());
+        return new SequentialCommandGroup(
+            shoot(),
+            scoreCenterNote(),
+            scoreRightNote()
+        );
     }
 
     public Command fourNoteAuto() {
-        return new SequentialCommandGroup(shootNote(),scoreCenterNote(), scoreLeftNote(), scoreRightNote());
-    }
-
-    public Command shootNote (){
         return new SequentialCommandGroup(
-            new RevAuto(ShooterSubsystem).withTimeout(1),
-            new ShootAuto(ShooterSubsystem, IndexerSubsystem).withTimeout(0.5)
+            shoot(),
+            scoreCenterNote(),
+            moveForward().withTimeout(0.125),
+            scoreLeftNote(),
+            rotate(-0.9, .35),
+            moveForward().withTimeout(0.25),
+            scoreRightNote()
         );
     }
 
+    /**
+     * @param rotation the power to rotate before approaching a note
+     * @param rotationTime the time the robot needs to rotate
+     * @param approachTime the time for which to approach the note before aiming
+     */
+    public Command score(double rotation, double rotationTime, double approachTime) {
+        return new SequentialCommandGroup(
+            rotate(rotation, rotationTime),
+
+            // Move forward without aiming to get close to the note
+            new ParallelDeadlineGroup(
+                moveForward().withTimeout(approachTime),
+                intake(0.5),
+                index().withTimeout(1)
+            ),
+
+            
+            // Move forward while aiming at the note now that it's in camera range
+            seekPickupNote().withTimeout(2), //was 2.125 without moveForward
+
+            sendNoteBack().withTimeout(2),
+
+            // After picking up the note, continue intaking it while returning to speaker
+            // Return to speaker uses speaker aiming
+            rotate(-rotation, .5),
+            // drive(new ControlVector().setSwerveRotation(-rotation).setSwerveFieldX(-1)).withTimeout(0.5),
+            sendNoteBack().withTimeout(.5),
+
+            new ParallelDeadlineGroup(
+                seekSpeaker().withTimeout(2.125),
+                //pickup().withTimeout(2) // NOTE: Maybe reduce timeout
+                sendNoteBack().withTimeout(1)
+            ).withTimeout(2.125),
+
+            //sendNoteBack().withTimeout(1),
+
+            // Once returned to speaker, shoot the note
+            shoot()
+        );
+    }
+
+    // Score the center note from center position at the subwoofer
     public Command scoreCenterNote() {
-        Command backupAndIntake = new ParallelDeadlineGroup(
-            backupToCenterNote(),
-            sendNoteBack().withTimeout(0.5),
-            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(2)
-        );
-
-        Command returnToSpeakerAndShuffle = new ParallelDeadlineGroup(
-            centerNoteReturnToSpeaker(),
-            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(2),
-            sendNoteBack()
-        );
-
-        return new SequentialCommandGroup(
-            backupAndIntake.withTimeout(2.125),
-            returnToSpeakerAndShuffle.withTimeout(2.125),
-            new ShuffleNote(IndexerSubsystem, ShooterSubsystem),
-            shootNote()
-        );
+        return score(0, 0, 1);
     }
 
+    // Score the left note from center position at the subwoofer
     public Command scoreLeftNote() {
-        Command backupAndIntake = new ParallelDeadlineGroup(
-            backupToLeftNote(),
-            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(2)
-        );
-
-        Command returnToSpeakerAndShuffle = new ParallelDeadlineGroup(
-            leftNoteReturnToSpeaker(),
-            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(2),
-            sendNoteBack()
-        );
-
-        return new SequentialCommandGroup(
-            backupAndIntake.withTimeout(2.125),
-            returnToSpeakerAndShuffle.withTimeout(2.125),
-            new ShuffleNote(IndexerSubsystem, ShooterSubsystem).withTimeout(3),
-            shootNote()
-        );
+        return score(CLOCKWISE * 0.5, 1, 1);
     }
 
+    // Score the right note from center position at the subwoofer
     public Command scoreRightNote() {
-        Command backupAndIntake = new ParallelDeadlineGroup(
-            backupToRightNote(),
-            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(2)
-        );
+        return score(COUNTER_CLOCKWISE * 0.5, 1 ,1);
+    }
 
-        Command returnToSpeakerAndShuffle = new ParallelDeadlineGroup(
-            rightNoteReturnToSpeaker(),
-            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(2),
-            sendNoteBack()
-        );
+    // Rotate from center position toward left note
+    public Command rotateToLeftNote() {
+        return rotate(COUNTER_CLOCKWISE * 0.5, .8);
+    }
 
+    // Rotate from center position toward right note
+    public Command rotateToRightNote() {
+        return rotate(CLOCKWISE * 0.5, .8);
+    }
+
+    public Command rotate(double power, double time) {
+        return drive(new ControlVector().setSwerveRotation(power)).withTimeout(time);
+    }
+
+    // Drive aiming at a note while running intake
+    public Command seekPickupNote() {
+        return new ParallelDeadlineGroup(
+            seekNote().withTimeout(2),
+            index().withTimeout(1),
+            intake(0.5).withTimeout(2)
+        );
+    }
+
+    // Drive aiming at a note
+    public Command seekNote() {
+        return driveAuto(new ControlVector().setSwerveRobotY(-1), 0.7, 0);
+    }
+
+    // Drive aiming at the speaker
+    public Command seekSpeaker() {
+        return driveAuto(new ControlVector().setSwerveRobotY(1), 0, .95);
+    }
+
+    // Drive intake-forward full speed
+    public Command moveForward() {
+        return drive(new ControlVector().setSwerveRobotY(-1));
+    }
+
+    public Command debugDrive() {
+        return drive(new ControlVector().setSwerveRobotY(0.5));
+    }
+
+    // Drive according to the given driveControl vector FOREVER
+    // This REQUIRES a timeout if you want to stop
+    public Command drive(ControlVector driveControl) {
+        return driveAuto(driveControl, 0, 0);
+    }
+
+    /**
+     * @param drive ControlVector for this drive command
+     * @param noteAim influence to give to note aiming rotation
+     * @param shootAim influence to give to shoot aiming rotation
+     */
+    public Command driveAuto(ControlVector drive, double noteAim, double shootAim) {
         return new SequentialCommandGroup(
-            backupAndIntake.withTimeout(2.125),
-            returnToSpeakerAndShuffle.withTimeout(2.125),
-            new ShuffleNote(IndexerSubsystem, ShooterSubsystem).withTimeout(3),
-            shootNote()
+            new AutoDrive(
+                new AutoVectors(autoDriveControlVector, autoDriveInfluenceVector, autoIntakeAimInfluence, autoShootAimInfluence),
+                new AutoVectors(
+                    drive,
+                    new ControlVector(1, 1, 1, 1, 1, 0), // Drive influence
+                    new ControlVector().setSwerveRotation(noteAim), // Note aim influence
+                    new ControlVector().setSwerveRotation(shootAim) // Shoot aim influence
+                )
+            ),
+            new WaitCommand()
         );
     }
 
-    public Command backupToCenterNote() {
-        return new AutoSwerve(SwerveSubsystem, 0, -0.3, 0.1,false);
+    // Shuffle the note, running it up and down in the indexer to un-squish a note
+    public Command shuffle() {
+        return new ShuffleNote(IndexerSubsystem, ShooterSubsystem);
     }
 
-    public Command centerNoteReturnToSpeaker() {
-        return new AutoSwerve(SwerveSubsystem, 0, 0.3, 0,false);
+    // Rev the shooter without feeding the note into the shooter
+    public Command rev() {
+        return new RevAuto(ShooterSubsystem);
     }
 
-    public Command backupToLeftNote() {
-        return new AutoSwerve(SwerveSubsystem, -0.23*1.5, -0.175*1.5, 0.1,false);
+    public Command shoot() {
+        return new SequentialCommandGroup(
+            rev().withTimeout(1),
+            new ShootAuto(ShooterSubsystem, IndexerSubsystem).withTimeout(1)
+        );
     }
 
-    public Command leftNoteReturnToSpeaker() {
-        return new AutoSwerve(SwerveSubsystem, 0.245*1.5, 0.19*1.5, 0.1,false);
+    public Command pickup() {
+        return new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem);
     }
 
-    public Command backupToRightNote() {
-        return new AutoSwerve(SwerveSubsystem, 0.23*1.5, -0.175*1.5, -0.1,false);
+    public Command intake(double speed){
+        return new IntakeNote(IntakeSubsystem, speed);
     }
 
-    public Command rightNoteReturnToSpeaker() {
-        return new AutoSwerve(SwerveSubsystem, -0.245*1.5, 0.19*1.5, -0.1,false);
+    public Command index(){
+        return new IndexNote(IndexerSubsystem);
     }
+    /////// OLD DEAD-RECKONING AUTO CODE /////////////////////////////////////////
 
+    // public Command leftNoteReturnToSpeaker() {
+    //     return new AutoSwerve(SwerveSubsystem, 0.245*1.5, 0.19*1.5, 0.1,false);
+    // }
+
+    // public Command backupToRightNote() {
+    //     return new AutoSwerve(SwerveSubsystem, 0.23*1.5, -0.175*1.5, -0.1,false);
+    // }
+
+    // public Command rightNoteReturnToSpeaker() {
+    //     return new AutoSwerve(SwerveSubsystem, -0.245*1.5, 0.19*1.5, -0.1,false);
+    // }
 
     public Command sendNoteBack() {
-        return new InstantCommand(() -> IndexerSubsystem.sendBack());
+        return new SendBackCommand(IndexerSubsystem);
     }
 }

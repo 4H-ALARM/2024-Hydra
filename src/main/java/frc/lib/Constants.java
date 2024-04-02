@@ -2,9 +2,8 @@ package frc.lib;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import frc.lib.config.*;
-
-import java.awt.*;
 
 public final class Constants {
 
@@ -22,24 +21,41 @@ public final class Constants {
     public static SwerveModuleConfig mod2backleftConfig = new SwerveModuleConfig(31, false, 32, false,33, Rotation2d.fromRotations(0.12));//
     public static SwerveModuleConfig mod3backrightConfig = new SwerveModuleConfig(41, false, 42, false, 43, Rotation2d.fromRotations(0.19));
 
-    public final class Debug {
-        //set to false to allow compiler to identify and eliminate
-        //unreachable code
-        public static final boolean VisionON = false;
+    public static enum AutonomousOptions {
+        TWO_NOTE_CENTER("TwoNoteCenter"),
+        SHOOT_NOTE("ShootNote", true), // isDefault=true
+        SHOOT_NOTE_MOVEBACK("ShootNoteMoveBack"),
+        THREE_NOTES_RIGHT("ThreeNotesRight"),
+        THREE_NOTES_LEFT("ThreeNoteLeft"),
+        FOUR_NOTES("FourNoteAuto"),
+        SEEK_NOTE("SEEK NOTE"),
+        SEEK_PICKUP_NOTE("SEEK_PICKUP_NOTE"),
+        SEEK_SPEAKER("SEEK_SPEAKER"),
+        DEBUG_DRIVE("DEBUG DRIVE"),
+        SHUFFLE("SHUFFLE"),
+        SHOOT("SHOOT"),
+        PICKUP("PICKUP"),
+        ;
+
+
+        private String name;
+        private boolean isDefault;
+        private AutonomousOptions(String name) {
+            this(name, false);
         }
 
-    public static class VisionParameters {
-        public static final int k_lightOff = 1;
-        public static final int k_lightOn = 3;
-        public static final int k_maxPipeline = 2;
-        public static final int k_aprilTagPipeline = 0;
-        public static final int k_conePipeline = 1;
-        public static final int k_cubePipeline = 2;
-        public static final int k_retrotapePipeline = 3;
-        public static final double k_xTargetBounds = 2.0;  //+- degrees
-        public static final double k_offset = 8.0;
+        private AutonomousOptions(String name, boolean isDefault) {
+            this.name = name;
+            this.isDefault = isDefault;
         }
-    public static enum AutonomousOptions {
-        TWO_NOTE_CENTER, SHOOT_NOTE,SHOOT_NOTE_MOVEBACK, RIGHTSPEAKERSIDESHOOTANDMOVEBACK, THREE_NOTES_RIGHT, THREE_NOTES_LEFT,FOUR_NOTES;
+
+        public static void registerChooser(SendableChooser<AutonomousOptions> chooser) {
+            for (AutonomousOptions option : AutonomousOptions.values()) {
+                chooser.addOption(option.name, option);
+                if (option.isDefault) {
+                    chooser.setDefaultOption(option.name, option);
+                }
+            }
+        }
     }
 }

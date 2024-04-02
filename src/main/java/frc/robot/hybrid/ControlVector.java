@@ -32,7 +32,7 @@ public class ControlVector extends Vector<N6> {
             double armPower
     ) {
         super(Nat.N6());
-        this.set(
+        this.setAll(
                 swerveFieldX,
                 swerveFieldY,
                 swerveRobotX,
@@ -80,6 +80,10 @@ public class ControlVector extends Vector<N6> {
         return new ControlVector(0.0, 0.0, swerveRobotX, swerveRobotY, swerveRotation, 0.0);
     }
 
+    public void setZero() {
+        this.setAll(0,0,0,0,0,0);
+    }
+
     /**
      * Sets the control values of this ControlVector, modifying in-place
      *
@@ -91,7 +95,7 @@ public class ControlVector extends Vector<N6> {
      * @param armPower Power to apply to arm movement (-1.0 to 1.0)
      */
     // Private because it has the same name as Matrix.set, which is confusing
-    private void set(
+    public void setAll(
             double swerveFieldX,
             double swerveFieldY,
             double swerveRobotX,
@@ -105,6 +109,15 @@ public class ControlVector extends Vector<N6> {
         this.set(3, 0, swerveRobotY);
         this.set(4, 0, swerveRotation);
         this.set(5, 0, armPower);
+    }
+
+    public void setFrom(ControlVector other) {
+        this.setSwerveFieldX(other.swerveFieldX());
+        this.setSwerveFieldY(other.swerveFieldY());
+        this.setSwerveRobotX(other.swerveRobotX());
+        this.setSwerveRobotY(other.swerveRobotY());
+        this.setSwerveRotation(other.swerveRotation());
+        this.setArmPower(other.armPower());
     }
 
     /**

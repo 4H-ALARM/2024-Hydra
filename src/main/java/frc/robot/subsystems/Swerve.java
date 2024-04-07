@@ -76,10 +76,10 @@ public class  Swerve extends SubsystemBase {
         AutoBuilder.configureHolonomic(
             () -> {
                 // TODO: return swerve pose
-                return new Pose2d();
+                return this.getPose();
             },
             (pose) -> {
-                // TODO: set odometry to this pose
+                this.setPose(pose);
             },
             () -> {
                 // Get the latest robot-relative ChassisSpeeds of the Swerve

@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.interfaces.Gyro;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.CtreConfigs;
 import frc.lib.Constants;
 import frc.lib.config.krakenTalonConstants;
@@ -14,45 +12,101 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class Swerve extends SubsystemBase {
+public class  Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
 
-    private ChassisSpeeds latestSpeeds;
+    private ChassisSpeeds latestSpeeds = new ChassisSpeeds();
+    private Consumer<ChassisSpeeds> setPathPlannerSpeed;
 
     /**
      * Default constructor uses SwerveModuleTalonNeo
      */
-    public Swerve(CtreConfigs ctreConfigs, Pigeon2 gyro) {
+    public Swerve(CtreConfigs ctreConfigs, Pigeon2 gyro, Consumer<ChassisSpeeds> robotSpeeds) {
         this(new SwerveModule[]{
                 new SwerveModuleKrakenFalcon(ctreConfigs, Constants.mod3backrightConfig, 3),
                 new SwerveModuleKrakenFalcon(ctreConfigs, Constants.mod1frontrightConfig, 1),
                 new SwerveModuleKrakenFalcon(ctreConfigs, Constants.mod2backleftConfig, 2),
                 new SwerveModuleKrakenFalcon(ctreConfigs, Constants.mod0frontleftConfig, 0)
-        }, gyro);
+        }, gyro, robotSpeeds);
     }
 
     /**
      * Constructor that allows custom SwerveModules
      */
-    public Swerve(SwerveModule[] modules,Pigeon2 gyro) {
+    public Swerve(SwerveModule[] modules, Pigeon2 gyro, Consumer<ChassisSpeeds> robotSpeeds) {
         this.mSwerveMods = modules;
         this.gyro = gyro;
+        this.setPathPlannerSpeed = robotSpeeds;
 
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         gyro.setYaw(0);
         swerveOdometry = new SwerveDriveOdometry(krakenTalonConstants.Swerve.driveTrainConfig.kinematics, getGyroYaw(), getModulePositions());
-        this.latestSpeeds = new ChassisSpeeds(0, 0,0);
+
+        // TODO: Get real values for these variables
+        double maxModuleSpeed = 0;
+        double driveBaseRadius = 0;
+        ReplanningConfig replanningConfig = new ReplanningConfig();
+        HolonomicPathFollowerConfig pathFollowerConfig = new HolonomicPathFollowerConfig(
+            new PIDConstants(1,0,0), 
+            new PIDConstants(1,0,0), 
+            maxModuleSpeed, 
+            driveBaseRadius, 
+            replanningConfig
+        );
+
+        AutoBuilder.configureHolonomic(
+            () -> {
+                // TODO: return swerve pose
+                return new Pose2d();
+            },
+            (pose) -> {
+                // TODO: set odometry to this pose
+            },
+            () -> {
+                // Get the latest robot-relative ChassisSpeeds of the Swerve
+                return this.latestSpeeds;
+            }, 
+            // setPathPlannerSpeed,
+            (pathSpeeds) -> {
+                // TODO: Set the input component for path planner to this ChassisSpeed value
+                setPathPlannerSpeed.accept(pathSpeeds);
+            },
+            pathFollowerConfig,
+            () -> {
+                // Boolean supplier that controls when the path will be mirrored for the red alliance
+                // This will flip the path being followed to the red side of the field.
+                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent()) {
+                    return alliance.get() == DriverStation.Alliance.Red;
+                }
+                return false;
+            }, 
+            // For our blended mode, we need the Swerve subsystem to be running the HybridSwerve
+            // command. Instead of giving PathPlanner control of our subsystem, we give it control
+            // of a dummy subsystem that does nothing, and we simply wire the inputs and outputs
+            // of the PathPlanner into our blended control
+            new DummySwerve()
+        );
     }
 
     public ChassisSpeeds getLatestSpeeds() {
@@ -161,7 +215,5 @@ public class Swerve extends SubsystemBase {
     @Override
     public void periodic() {
         swerveOdometry.update(getGyroYaw(), getModulePositions());
-
-
     }
 }

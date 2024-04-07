@@ -1,8 +1,10 @@
 package frc.robot.containers;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -112,6 +114,10 @@ public class RobotContainer {
     private ControlVector autoIntakeAimInfluence;
     private ControlVector autoShootAimInfluence;
 
+    // TODO Add ChassisSpeeds pValue and tValue from PathPlanner
+    private ChassisSpeeds pathPlannerSpeed;
+    private ChassisSpeeds pathPlannerInfluence;
+
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
@@ -129,8 +135,14 @@ public class RobotContainer {
             alliance = DriverStation.getAlliance().get();
         }
 
+        pathPlannerSpeed = new ChassisSpeeds();
+        pathPlannerInfluence = new ChassisSpeeds(1, 1, 1);
+
         /* Subsystems */
-        SwerveSubsystem = new Swerve(robotConfig.ctreConfigs, gyro);
+        SwerveSubsystem = new Swerve(robotConfig.ctreConfigs, gyro, (pathSpeeds) -> {
+            // Each frame, assign the latest ChassisSpeeds from PathPlanner
+            pathPlannerSpeed = pathSpeeds;
+        });
         ArmSubsystem = new Arm(Constants.armConfig);
         IntakeSubsystem = new Intake(Constants.intakeConfig, colorSensorController);
         ShooterSubsystem = new Shooter(Constants.shooterConfig);
@@ -168,7 +180,7 @@ public class RobotContainer {
 
         // Each entry in the BlendedControl contributes some output to the Robot's movements
         BlendedControl blendedControl = new BlendedControl();
-        blendedControl.addComponent(
+        blendedControl.addControlVectorComponent(
                 // Teleop Driver component
                 () -> {
                     double X = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 4.5;
@@ -197,7 +209,7 @@ public class RobotContainer {
         );
 
         // Input from autonomous planner, only active in auto mode
-        blendedControl.addComponent(
+        blendedControl.addControlVectorComponent(
                 () -> {
                     return autoDriveControlVector;
                 },
@@ -207,7 +219,7 @@ public class RobotContainer {
         );
 
         // Component for auto-aiming intake at note
-        blendedControl.addComponent(
+        blendedControl.addControlVectorComponent(
                 () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getNoteAimRotationPower()),
                 () -> {
                     if (DriverStation.isAutonomous()) {
@@ -223,7 +235,7 @@ public class RobotContainer {
         );
 
         // Component for auto-aiming shooter at speaker
-        blendedControl.addComponent(
+        blendedControl.addControlVectorComponent(
                 () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getAngleToShootAngle()),
                 () -> {
                     if (DriverStation.isAutonomous()) {
@@ -245,7 +257,7 @@ public class RobotContainer {
         );
 
         // Long range auto-aiming: Lifting the arm
-        blendedControl.addComponent(
+        blendedControl.addControlVectorComponent(
                 // PValue
                 () -> {
                     ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(Constants.armConfig.intakeAngle));
@@ -271,6 +283,18 @@ public class RobotContainer {
                 }
         );
 
+        blendedControl.addChassisSpeedsComponent(
+            () -> {
+                // TODO return the latest ChassisSpeeds from PathPlanner
+                return pathPlannerSpeed;
+            },
+            () -> {
+                // TODO return a ChassisSpeeds influence vector
+                // This should have full influence (1, 1, 1) for auto mode but no influence (0, 0, 0) for teleop mode
+                return pathPlannerInfluence;
+            }
+        );
+
         HybridSwerve hybridSwerve = new HybridSwerve(SwerveSubsystem, blendedControl);
         SwerveSubsystem.setDefaultCommand(hybridSwerve);
 
@@ -280,7 +304,7 @@ public class RobotContainer {
         // );
 
         ArmSubsystem.setDefaultCommand(new InstantCommand(() -> {
-            ControlVector control = blendedControl.solve();
+            ControlVector control = blendedControl.solveControlVectorInputs();
             ArmSubsystem.moveArm(control.armPower());
         }, ArmSubsystem));
 

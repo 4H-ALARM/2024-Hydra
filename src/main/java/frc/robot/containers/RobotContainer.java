@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -30,10 +29,8 @@ import frc.robot.commands.CommandGroups.IntakeCommands.IntakeNoteCommandGroup;
 import frc.robot.commands.CommandGroups.IntakeCommands.SendBackCommandGroup;
 import frc.robot.commands.CommandGroups.IntakeCommands.ShuffleNote;
 import frc.robot.commands.CommandGroups.ShootCommands.PrepareShootCommandGroup;
-import frc.robot.commands.Drive.AutoSwerve;
 import frc.robot.commands.Drive.HybridSwerve;
 
-//import frc.robot.commands.HybridAuto.AutoDrive;
 import frc.robot.commands.HybridAuto.AutoDrive;
 import frc.robot.commands.HybridAuto.AutoVectors;
 import frc.robot.commands.Indexer.FeedNote;
@@ -54,7 +51,6 @@ public class RobotContainer {
     private final CommandXboxController copilot = new CommandXboxController(1);
 
     /* Instatiantion of pilot Triggers */
-
     private final int LeftYAxis = XboxController.Axis.kLeftY.value;
     private final int LeftXAxis = XboxController.Axis.kLeftX.value;
     private final int RightYAxis = XboxController.Axis.kRightY.value;
@@ -93,17 +89,12 @@ public class RobotContainer {
     private final Vision VisionSubsystem;
     private final CPX CPXSubsystem;
 
-    /* State Machine */
-    private final RobotStateMachine robotStateMachine;
-
     /* Util Classes */
     private final ColorSensorController colorSensorController;
     private final ToggleHandler shootAimOverideToggle;
     private final ToggleHandler intakeAimOverideToggle;
     private final ToggleHandler beamBreakToggle;
     
-    //private final AutoCommands autoCommandsConstructor;
-
     /* Teleop Commands */
     private final IntakeCommandGroup intakeCommand;
     private final PrepareShootCommandGroup prepareShootCommand;
@@ -114,9 +105,7 @@ public class RobotContainer {
     private final CpxSet cpxOn;
     private final CpxSet cpxOff;
     private final PassNote passNoteCommand;
-
     private final ShuffleNote shuffleNote;
-
 
     private ControlVector autoDriveControlVector;
     private ControlVector autoDriveInfluenceVector;
@@ -151,9 +140,6 @@ public class RobotContainer {
         VisionSubsystem = new Vision(Constants.visionConfig, alliance);
         CPXSubsystem = new CPX(3); // TODO create CpxConfig
 
-        /* State Machine */
-        robotStateMachine = new RobotStateMachine();
-
         /* Teleop Commands */
         intakeCommand = new IntakeCommandGroup(IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, LightSubsystem, pilot);
         prepareShootCommand = new PrepareShootCommandGroup(ArmSubsystem, IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, pilot);
@@ -165,9 +151,6 @@ public class RobotContainer {
         shuffleNote = new ShuffleNote(IndexerSubsystem, ShooterSubsystem);
         secondprepareShootCommand = new PrepareShootCommandGroup(ArmSubsystem, IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, pilot);
         passNoteCommand = new PassNote(ShooterSubsystem);
-
-        /* Command Constructor for Autos */
-        //autoCommandsConstructor = new AutoCommands(SwerveSubsystem, ArmSubsystem, IndexerSubsystem, ShooterSubsystem, IntakeSubsystem, DriverStation.getAlliance().get());
 
         // Influence vectors for blended control
         ControlVector driverActive = ControlVector.fromFieldRelative(1.0, 1.0, 1.0).setSwerveRobotX(0.5).setSwerveRobotY(0.5);
@@ -182,25 +165,12 @@ public class RobotContainer {
         autoDriveInfluenceVector = new ControlVector();
         autoIntakeAimInfluence = new ControlVector();
         autoShootAimInfluence = new ControlVector();
-//        Command hybridAuto = new ScoreCenterNote(autoControlVector, autoIntakeAimInfluence, autoShootAimInfluence);
-
-//        Command autoDrive = new AutoDrive(autoControlVector);
-//        Command autoDrive2 = new InstantCommand(() -> autoControlVector.setSwerveRobotX(0.5));
 
         // Each entry in the BlendedControl contributes some output to the Robot's movements
         BlendedControl blendedControl = new BlendedControl();
         blendedControl.addComponent(
                 // Teleop Driver component
                 () -> {
-                    // double fieldX = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 4.5;
-                    // double fieldY = MathUtil.applyDeadband(-pilot.getRawAxis(LeftYAxis), 0.1) * 4.5;
-                    // double robotY = 0;
-                    // double rot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 5;
-                    // if (pilotLeftBumper.getAsBoolean()) {
-                    //     robotY += 0.5;
-                    // }
-                    // return ControlVector.fromFieldRelative(fieldX, fieldY, rot).setSwerveRobotY(-robotY);
-
                     double X = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 4.5;
                     double Y = MathUtil.applyDeadband(-pilot.getRawAxis(LeftYAxis), 0.1) * 4.5;
                     double rot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 5;
@@ -208,7 +178,6 @@ public class RobotContainer {
                         return ControlVector.fromRobotRelative(-X, -Y, rot);
                     }
                     return ControlVector.fromFieldRelative(X, Y, rot);
-                    
                 },
                 // TValue describes how much influence the Teleop Driver component has
                 () -> {
@@ -252,6 +221,8 @@ public class RobotContainer {
                     return intakeAimInactive.interpolate(intakeAimActive, t);
                 }
         );
+
+        // Component for auto-aiming shooter at speaker
         blendedControl.addComponent(
                 () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getAngleToShootAngle()),
                 () -> {
@@ -273,13 +244,10 @@ public class RobotContainer {
                 }
         );
 
-
-
         // Long range auto-aiming: Lifting the arm
         blendedControl.addComponent(
                 // PValue
                 () -> {
-//                    setpoint += copilot.getRawAxis(LeftYAxis);
                     ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(Constants.armConfig.intakeAngle));
                     if (copilotLeftTrigger.getAsBoolean()) {
                         ArmSubsystem.setControlType(true);
@@ -299,15 +267,14 @@ public class RobotContainer {
                 },
                 // TValue
                 () -> {
-                    
                         return new ControlVector().setArmPower(1);
-                    
                 }
         );
 
         HybridSwerve hybridSwerve = new HybridSwerve(SwerveSubsystem, blendedControl);
         SwerveSubsystem.setDefaultCommand(hybridSwerve);
 
+        // TODO: Re-enable climber
         // ClimberSubsystem.setDefaultCommand(
         //         new InstantCommand(() -> ClimberSubsystem.joystickControl(MathUtil.applyDeadband(copilot.getRawAxis(RightYAxis), 0.1)), ClimberSubsystem)
         // );
@@ -337,7 +304,6 @@ public class RobotContainer {
         copilotPOVright.onTrue(new InstantCommand(() -> beamBreakToggle.toggle()));
         copilotRightTrigger.whileTrue(secondprepareShootCommand);
         copilotaButton.onTrue(shuffleNote);
-        
     }
 
     public Command getAutonomousCommand(AutonomousOptions plan) {
@@ -425,7 +391,6 @@ public class RobotContainer {
                 intake(0.5),
                 index().withTimeout(1)
             ),
-
             
             // Move forward while aiming at the note now that it's in camera range
             seekPickupNote().withTimeout(2), //was 2.125 without moveForward
@@ -562,19 +527,6 @@ public class RobotContainer {
     public Command index(){
         return new IndexNote(IndexerSubsystem);
     }
-    /////// OLD DEAD-RECKONING AUTO CODE /////////////////////////////////////////
-
-    // public Command leftNoteReturnToSpeaker() {
-    //     return new AutoSwerve(SwerveSubsystem, 0.245*1.5, 0.19*1.5, 0.1,false);
-    // }
-
-    // public Command backupToRightNote() {
-    //     return new AutoSwerve(SwerveSubsystem, 0.23*1.5, -0.175*1.5, -0.1,false);
-    // }
-
-    // public Command rightNoteReturnToSpeaker() {
-    //     return new AutoSwerve(SwerveSubsystem, -0.245*1.5, 0.19*1.5, -0.1,false);
-    // }
 
     public Command sendNoteBack() {
         return new SendBackCommand(IndexerSubsystem);

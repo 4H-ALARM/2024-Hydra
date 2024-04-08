@@ -1,16 +1,9 @@
 package frc.robot.classes.Limelight;
 
 
-import edu.wpi.first.apriltag.AprilTag;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.lib.Constants;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import frc.robot.classes.Limelight.LimelightHelpers.LimelightResults;
-import frc.robot.classes.Limelight.LimelightHelpers;
 
 
 public class LimelightController {
@@ -18,36 +11,17 @@ public class LimelightController {
 
     private final String llName;
 
-
-
-
     public LimelightController(String name) {
         llName = name;
         this.llresults = LimelightHelpers.getLatestResults(llName);
-        LimelightHelpers.setLEDMode_ForceOff(llName);
-    }
-
-    public void setOn() {
-        LimelightHelpers.setLEDMode_ForceOn(llName);
-    }
-
-    public double getBasicRotOffset() {
-        return LimelightHelpers.getTX(llName);
-    }
-
-    public LimelightResults getResults() {
-        this.llresults = LimelightHelpers.getLatestResults(llName);
-        return this.llresults;
     }
 
     public double getYawToSpeaker() {
-        Pose3d pose = LimelightHelpers.getBotPose3d_TargetSpace(llName);
         double txToSpeaker = LimelightHelpers.getTX(llName);
         return txToSpeaker/20;
     }
 
-
-    public double distanceToSpeaker() {
+    public double getTY() {
         double ty = LimelightHelpers.getTY(llName);
         return ty;
     }
@@ -61,6 +35,21 @@ public class LimelightController {
     public double getYawToNote() {
         double limelightDegrees = LimelightHelpers.getTX(llName);
         return limelightDegrees / 27.0;
+    }
+
+    public LimelightHelpers.PoseEstimate getPose() {
+        return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+    }
+
+    public void updatePoseEstimator(SwerveDrivePoseEstimator odometry) {
+        odometry.setVisionMeasurementStdDevs(VecBuilder.fill(.6,.6,9999999));
+        odometry.addVisionMeasurement(
+                getPose().pose,
+                getPose().timestampSeconds);
+    }
+
+    public void setHeading(double angle) {
+        LimelightHelpers.SetRobotOrientation(llName, angle, 0, 0, 0, 0, 0);
     }
 
 

@@ -1,9 +1,13 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.CtreConfigs;
 import frc.lib.Constants;
 import frc.lib.config.krakenTalonConstants;
+import frc.robot.classes.Limelight.LimelightController;
 import frc.robot.classes.krakenFalcon.SwerveModule;
 import frc.robot.classes.krakenFalcon.SwerveModuleKrakenFalcon;
 
@@ -22,34 +26,41 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Swerve extends SubsystemBase {
-    public SwerveDriveOdometry swerveOdometry;
+    public SwerveDrivePoseEstimator swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
+    private LimelightController limelight;
 
     private ChassisSpeeds latestSpeeds;
 
     /**
      * Default constructor uses SwerveModuleTalonNeo
      */
-    public Swerve(CtreConfigs ctreConfigs, Pigeon2 gyro) {
+    public Swerve(CtreConfigs ctreConfigs, Pigeon2 gyro, LimelightController limelight) {
         this(new SwerveModule[]{
                 new SwerveModuleKrakenFalcon(ctreConfigs, Constants.mod3backrightConfig, 3),
                 new SwerveModuleKrakenFalcon(ctreConfigs, Constants.mod1frontrightConfig, 1),
                 new SwerveModuleKrakenFalcon(ctreConfigs, Constants.mod2backleftConfig, 2),
                 new SwerveModuleKrakenFalcon(ctreConfigs, Constants.mod0frontleftConfig, 0)
-        }, gyro);
+        }, gyro, limelight);
     }
 
     /**
      * Constructor that allows custom SwerveModules
      */
-    public Swerve(SwerveModule[] modules,Pigeon2 gyro) {
+    public Swerve(SwerveModule[] modules,Pigeon2 gyro, LimelightController limelight) {
         this.mSwerveMods = modules;
         this.gyro = gyro;
+        this.limelight = limelight;
 
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         gyro.setYaw(0);
-        swerveOdometry = new SwerveDriveOdometry(krakenTalonConstants.Swerve.driveTrainConfig.kinematics, getGyroYaw(), getModulePositions());
+        swerveOdometry = new SwerveDrivePoseEstimator(krakenTalonConstants.Swerve.driveTrainConfig.kinematics,
+                getGyroYaw(),
+                getModulePositions(),
+                new Pose2d(),
+                VecBuilder.fill(0.1, 0.1, 0.1),
+                VecBuilder.fill(0.9, 0.9, 0.9));
         this.latestSpeeds = new ChassisSpeeds(0, 0,0);
     }
 
@@ -119,7 +130,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public Pose2d getPose() {
-        Pose2d pose = swerveOdometry.getPoseMeters();
+        Pose2d pose = swerveOdometry.getEstimatedPosition();
         return pose;
     }
 
@@ -133,6 +144,13 @@ public class Swerve extends SubsystemBase {
 
     public void setHeading(Rotation2d heading) {
         swerveOdometry.resetPosition(getGyroYaw(), getModulePositions(), new Pose2d(getPose().getTranslation(), heading));
+    }
+    public void setLimelightHeading(DriverStation.Alliance allaince, LimelightController limelight) {
+        if (allaince == DriverStation.Alliance.Blue) {
+            limelight.setHeading(swerveOdometry.getEstimatedPosition().getRotation().getDegrees()-360);
+            return;
+        }
+        limelight.setHeading(swerveOdometry.getEstimatedPosition().getRotation().getDegrees());
     }
 
     public void zeroHeading() {
@@ -159,6 +177,18 @@ public class Swerve extends SubsystemBase {
     @Override
     public void periodic() {
         swerveOdometry.update(getGyroYaw(), getModulePositions());
+        setLimelightHeading(DriverStation.getAlliance().get(), limelight);
+        boolean doRejectUpdate = false;
+        if(Math.abs(gyro.getRate()) > 720) // if our angular velocity is greater than 720 degrees per second, ignore vision updates
+        {
+            doRejectUpdate = true;
+        }
+        if(!doRejectUpdate)
+        {
+            limelight.updatePoseEstimator(swerveOdometry);
+        }
+
+
 
 
     }

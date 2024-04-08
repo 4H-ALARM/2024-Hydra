@@ -131,14 +131,14 @@ public class RobotContainerTeleop {
         }
 
         /* Subsystems */
-        SwerveSubsystem = new Swerve(robotConfig.ctreConfigs, gyro);
+        VisionSubsystem = new Vision(Constants.visionConfig, alliance);
+        SwerveSubsystem = new Swerve(robotConfig.ctreConfigs, gyro, VisionSubsystem.getShootLimelight());
         ArmSubsystem = new Arm(Constants.armConfig);
         IntakeSubsystem = new Intake(Constants.intakeConfig, colorSensorController);
         ShooterSubsystem = new Shooter(Constants.shooterConfig);
         IndexerSubsystem = new Indexer(Constants.indexerConfig);
         //ClimberSubsystem = new Climber(Constants.climberConfig, robotConfig.dashboardConfig);
         LightSubsystem = new Light(Constants.lightConfig, colorSensorController);
-        VisionSubsystem = new Vision(Constants.visionConfig, alliance);
         CPXSubsystem = new CPX(3); // TODO create CpxConfig
 
         /* State Machine */

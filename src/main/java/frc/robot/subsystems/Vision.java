@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.config.VisionConfig;
 import frc.robot.classes.Limelight.LimelightController;
 import frc.robot.classes.RollingAverage;
-import pabeles.concurrency.IntOperatorTask;
 
 
 public class Vision {
@@ -118,9 +117,15 @@ public class Vision {
 
     }
 
+    public LimelightController getShootLimelight() {
+        return shootLimelight;
+    }
+    public LimelightController getIntakeLimelight() {
+        return intakeLimelight;
+    }
 
     public void periodic() {
-        angleToGoalRadians = (limelightMountAngleDegrees + shootLimelight.distanceToSpeaker()) * (3.14159 / 180.0);
+        angleToGoalRadians = (limelightMountAngleDegrees + shootLimelight.getTY()) * (3.14159 / 180.0);
         distanceFromLimelightToSpeakerInches = (goalHeightInches - limelightMountHeightInches) / Math.tan(angleToGoalRadians);
         double shootoffset = Math.atan(11/distanceFromLimelightToSpeakerInches);
 

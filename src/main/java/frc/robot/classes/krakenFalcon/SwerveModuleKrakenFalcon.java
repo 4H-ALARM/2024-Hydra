@@ -1,10 +1,15 @@
 package frc.robot.classes.krakenFalcon;
 
+import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -46,11 +51,19 @@ public class SwerveModuleKrakenFalcon implements SwerveModule {
         /* Angle Encoder Config */
         angleEncoder = new CANcoder(moduleConfig.cancoderID);
         angleEncoder.getConfigurator().apply(ctreConfigs.swerveCANcoderConfig);
+        
 
         /* Angle Motor Config */
         mAngleMotor = new TalonFX(moduleConfig.angleMotorID);
         mAngleMotor.setInverted(moduleConfig.angleInvert);
         mAngleMotor.getConfigurator().apply(ctreConfigs.swerveAngleFXConfig);
+        TalonFXConfiguration remoteConfiguration = new TalonFXConfiguration();
+        remoteConfiguration.Feedback.FeedbackRemoteSensorID = moduleConfig.cancoderID;
+        remoteConfiguration.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+        remoteConfiguration.Feedback.SensorToMechanismRatio = 1.0;
+        remoteConfiguration.Feedback.RotorToSensorRatio = 12.8;
+        mAngleMotor.getConfigurator().apply(remoteConfiguration);
+    
         resetToAbsolute();
 
         /* Drive Motor Config */
@@ -58,6 +71,10 @@ public class SwerveModuleKrakenFalcon implements SwerveModule {
         mDriveMotor.setInverted(moduleConfig.driveInvert);
         mDriveMotor.getConfigurator().apply(ctreConfigs.swerveDriveFXConfig);
         mDriveMotor.getConfigurator().setPosition(0.0);
+
+        SmartDashboard.putBoolean("is drive prolicensed", mDriveMotor.getIsProLicensed().getValue());
+        SmartDashboard.putBoolean("is angle prolicensed", mAngleMotor.getIsProLicensed().getValue());
+
     }
 
     @Override
@@ -68,7 +85,8 @@ public class SwerveModuleKrakenFalcon implements SwerveModule {
 //        }
         //frameCount++;
         desiredState = SwerveModuleState.optimize(desiredState, getState().angle);
-        mAngleMotor.setControl(anglePosition.withPosition(desiredState.angle.getRotations()));
+        mAngleMotor.setControl(anglePosition.withPosition(desiredState.angle.getRotations()).withEnableFOC(true));
+        
         setSpeed(desiredState, isOpenLoop);
     }
 
@@ -117,12 +135,12 @@ public class SwerveModuleKrakenFalcon implements SwerveModule {
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
         if(isOpenLoop){
             driveDutyCycle.Output = desiredState.speedMetersPerSecond / krakenTalonConstants.Swerve.maxSpeed;
-            mDriveMotor.setControl(driveDutyCycle);
+            mDriveMotor.setControl(driveDutyCycle.withEnableFOC(true));
         }
         else {
             driveVelocity.Velocity = Conversions.MPSToRPS(desiredState.speedMetersPerSecond, krakenTalonConstants.Swerve.driveTrainConfig.wheelCircumference);
             driveVelocity.FeedForward = driveFeedForward.calculate(desiredState.speedMetersPerSecond);
-            mDriveMotor.setControl(driveVelocity);
+            mDriveMotor.setControl(driveVelocity.withEnableFOC(true));
         }
     }
 

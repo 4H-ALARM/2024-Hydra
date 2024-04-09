@@ -1,6 +1,8 @@
 package frc.robot.containers;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -136,7 +138,7 @@ public class RobotContainer {
         }
 
         pathPlannerSpeed = new ChassisSpeeds();
-        pathPlannerInfluence = new ChassisSpeeds(1, 1, 1);
+        pathPlannerInfluence = new ChassisSpeeds(0.5, .5, .5);
 
         /* Subsystems */
         SwerveSubsystem = new Swerve(robotConfig.ctreConfigs, gyro, (pathSpeeds) -> {
@@ -286,6 +288,7 @@ public class RobotContainer {
         blendedControl.addChassisSpeedsComponent(
             () -> {
                 // TODO return the latest ChassisSpeeds from PathPlanner
+                SmartDashboard.putString("coordinates", String.format("x:%f,y:%f,z:%f", pathPlannerSpeed.vxMetersPerSecond, pathPlannerSpeed.vyMetersPerSecond, pathPlannerSpeed.omegaRadiansPerSecond));
                 return pathPlannerSpeed;
             },
             () -> {
@@ -356,6 +359,11 @@ public class RobotContainer {
                 return shoot();
             case PICKUP:
                 return pickup();
+            case FOLLOWPATH:
+                PathPlannerPath path = PathPlannerPath.fromPathFile("center-note-center");
+                // Create a path following command using AutoBuilder. This will also trigger event markers.
+                return AutoBuilder.followPath(path);
+
             default:
                 return shoot();
         }

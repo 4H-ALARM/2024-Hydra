@@ -27,6 +27,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class  Swerve extends SubsystemBase {
@@ -62,12 +63,12 @@ public class  Swerve extends SubsystemBase {
         swerveOdometry = new SwerveDriveOdometry(krakenTalonConstants.Swerve.driveTrainConfig.kinematics, getGyroYaw(), getModulePositions());
 
         // TODO: Get real values for these variables
-        double maxModuleSpeed = 0;
-        double driveBaseRadius = 0;
+        double maxModuleSpeed = krakenTalonConstants.Swerve.maxSpeed;
+        double driveBaseRadius = krakenTalonConstants.Swerve.swerveRadius;
         ReplanningConfig replanningConfig = new ReplanningConfig();
         HolonomicPathFollowerConfig pathFollowerConfig = new HolonomicPathFollowerConfig(
-            new PIDConstants(1,0,0), 
-            new PIDConstants(1,0,0), 
+            new PIDConstants(0.1,0,0), 
+            new PIDConstants(0.1,0,0), 
             maxModuleSpeed, 
             driveBaseRadius, 
             replanningConfig
@@ -215,5 +216,6 @@ public class  Swerve extends SubsystemBase {
     @Override
     public void periodic() {
         swerveOdometry.update(getGyroYaw(), getModulePositions());
+        SmartDashboard.putNumber("swerveperiodic", 0);
     }
 }

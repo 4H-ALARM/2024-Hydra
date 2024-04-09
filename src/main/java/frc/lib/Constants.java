@@ -35,6 +35,7 @@ public final class Constants {
         SHUFFLE("SHUFFLE"),
         SHOOT("SHOOT"),
         PICKUP("PICKUP"),
+        FOLLOWPATH("FOLLOWPATH")
         ;
 
 

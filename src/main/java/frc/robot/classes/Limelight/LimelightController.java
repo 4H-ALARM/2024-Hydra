@@ -42,10 +42,13 @@ public class LimelightController {
     }
 
     public void updatePoseEstimator(SwerveDrivePoseEstimator odometry) {
-        odometry.setVisionMeasurementStdDevs(VecBuilder.fill(.6,.6,9999999));
-        odometry.addVisionMeasurement(
+        if (LimelightHelpers.getBotPoseEstimate_wpiBlue(llName).tagCount >=1) {
+            odometry.setVisionMeasurementStdDevs(VecBuilder.fill(.6,.6,9999999));
+            odometry.addVisionMeasurement(
                 getPose().pose,
                 getPose().timestampSeconds);
+        }
+        
     }
 
     public void setHeading(double angle) {

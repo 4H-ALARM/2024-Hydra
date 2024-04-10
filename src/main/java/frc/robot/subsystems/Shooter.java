@@ -14,6 +14,7 @@ public class Shooter extends SubsystemBase {
     private PIDController vPidController;
     private final double velocitySetpoint;
     private double pidout;
+    private double lastSpeed;
 
     public final ShooterConfig config;
     public Shooter(ShooterConfig config) {
@@ -23,14 +24,21 @@ public class Shooter extends SubsystemBase {
         shooterBottomMotor = new CANSparkFlex(this.config.shooterBottomMotor, CANSparkLowLevel.MotorType.kBrushless);
         shooterBottomMotor.follow(shooterTopMotor);
 
-        vPidController.setPID(1, 0, 0);
-        velocitySetpoint = 6000;
+        vPidController = new PIDController(0.1, 0, 0);
+        velocitySetpoint = 2000;
 
 
     }
 
     public void startShooter() {
-        shooterTopMotor.set(pidout);
+        if (pidout ==0) {
+            shooterTopMotor.set(lastSpeed);
+            return;
+        }
+        shooterTopMotor.set(pidout+lastSpeed);
+        if (pidout >0) {
+            lastSpeed =pidout;
+        }
     }
 
     public void passNoteShooter() {
@@ -66,6 +74,7 @@ public class Shooter extends SubsystemBase {
 
     @Override
     public void periodic() {
+        SmartDashboard.putNumber("velocity", shooterTopMotor.getEncoder().getVelocity());
         pidout = vPidController.calculate(shooterTopMotor.getEncoder().getVelocity(), velocitySetpoint);
     }
 

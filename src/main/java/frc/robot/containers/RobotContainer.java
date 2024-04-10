@@ -138,7 +138,7 @@ public class RobotContainer {
         }
 
         pathPlannerSpeed = new ChassisSpeeds();
-        pathPlannerInfluence = new ChassisSpeeds(0.5, .5, .5);
+        pathPlannerInfluence = new ChassisSpeeds(1, 1, 1);
 
         /* Subsystems */
         SwerveSubsystem = new Swerve(robotConfig.ctreConfigs, gyro, (pathSpeeds) -> {

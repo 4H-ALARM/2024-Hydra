@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Constants;
@@ -48,7 +49,7 @@ import java.util.function.DoubleSupplier;
 public class RobotContainerTeleop {
     /* Controllers */
     private final CommandXboxController pilot = new CommandXboxController(0);
-    private final CommandXboxController copilot = new CommandXboxController(1);
+    private final CommandPS5Controller copilot = new CommandPS5Controller(1);
 
     /* Instatiantion of pilot Triggers */
 
@@ -62,17 +63,17 @@ public class RobotContainerTeleop {
 
     private final Trigger pilotRightTrigger = pilot.rightTrigger();
     private final Trigger pilotLeftTrigger = pilot.leftTrigger();
-    private final Trigger copilotRightTrigger = copilot.rightTrigger();
-    private final Trigger copilotLeftTrigger = copilot.leftTrigger();
+    private final Trigger copilotRightTrigger = copilot.R2();
+    private final Trigger copilotLeftTrigger = copilot.L2();
 
     private final Trigger pilotRightBumper = pilot.rightBumper();
     private final Trigger pilotLeftBumper = pilot.leftBumper();
-    private final Trigger copilotRightBumper = copilot.rightBumper();
-    private final Trigger copilotLeftBumper = copilot.leftBumper();
+    private final Trigger copilotRightBumper = copilot.R1();
+    private final Trigger copilotLeftBumper = copilot.L1();
 
     private final Trigger pilotyButton = pilot.y();
     private final Trigger pilotaButton = pilot.a();
-    private final Trigger copilotaButton = copilot.a();
+    private final Trigger copilotaButton = copilot.circle();
 
     private final Trigger copilotPOVup = copilot.povUp();
     private final Trigger copilotPOVleft = copilot.povLeft();

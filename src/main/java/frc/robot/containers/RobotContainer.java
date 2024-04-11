@@ -138,7 +138,7 @@ public class RobotContainer {
         }
 
         pathPlannerSpeed = new ChassisSpeeds();
-        pathPlannerInfluence = new ChassisSpeeds(1, 1, 1);
+        pathPlannerInfluence = new ChassisSpeeds(1, 1, 0);
 
         /* Subsystems */
         SwerveSubsystem = new Swerve(robotConfig.ctreConfigs, gyro, (pathSpeeds) -> {
@@ -363,7 +363,7 @@ public class RobotContainer {
             case PICKUP:
                 return pickup();
             case FOLLOWPATH:
-                PathPlannerPath path = PathPlannerPath.fromPathFile("center-note-center");
+                PathPlannerPath path = PathPlannerPath.fromPathFile("left-note-center");
                 // Create a path following command using AutoBuilder. This will also trigger event markers.
                 return AutoBuilder.followPath(path);
 

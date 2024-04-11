@@ -74,6 +74,11 @@ public class RobotContainerTeleop {
     private final Trigger pilotaButton = pilot.a();
     private final Trigger copilotaButton = copilot.a();
 
+    private final Trigger pilotPOVup = pilot.povUp();
+    private final Trigger pilotPOVleft = pilot.povLeft();
+    private final Trigger pilotPOVright = pilot.povRight();
+    private final Trigger pilotPOVdown = pilot.povDown();
+
     private final Trigger copilotPOVup = copilot.povUp();
     private final Trigger copilotPOVleft = copilot.povLeft();
     private final Trigger copilotPOVright = copilot.povRight();
@@ -203,6 +208,24 @@ public class RobotContainerTeleop {
                     double rot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 5;
                     if (pilotLeftBumper.getAsBoolean()) {
                         return ControlVector.fromRobotRelative(-X, -Y, rot);
+                    }
+                    if (rot == 0) {
+                        if (pilotPOVup.getAsBoolean()) {
+                            SwerveSubsystem.setTargetAngle(0);
+                            rot = SwerveSubsystem.getPowerToTargetAngle();
+                        }
+                        if (pilotPOVleft.getAsBoolean()) {
+                            SwerveSubsystem.setTargetAngle(270);
+                            rot = SwerveSubsystem.getPowerToTargetAngle();
+                        }
+                        if (pilotPOVright.getAsBoolean()) {
+                            SwerveSubsystem.setTargetAngle(90);
+                            rot = SwerveSubsystem.getPowerToTargetAngle();
+                        }
+                        if (pilotPOVdown.getAsBoolean()) {
+                            SwerveSubsystem.setTargetAngle(180);
+                            rot = SwerveSubsystem.getPowerToTargetAngle();
+                        }
                     }
                     return ControlVector.fromFieldRelative(X, Y, rot);
                     

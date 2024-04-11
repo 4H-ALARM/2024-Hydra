@@ -60,7 +60,7 @@ public class  Swerve extends SubsystemBase {
 
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         gyro.setYaw(0);
-        swerveOdometry = new SwerveDriveOdometry(krakenTalonConstants.Swerve.driveTrainConfig.kinematics, getGyroYaw(), getModulePositions(), new Pose2d(new Translation2d(1.32, 5.56), new Rotation2d().fromDegrees(14.04)));
+        swerveOdometry = new SwerveDriveOdometry(krakenTalonConstants.Swerve.driveTrainConfig.kinematics, getGyroYaw(), getModulePositions(), new Pose2d(new Translation2d(1.32, 5.56), new Rotation2d().fromDegrees(90)));
 
         // TODO: Get real values for these variables
         double maxModuleSpeed = krakenTalonConstants.Swerve.maxSpeed;

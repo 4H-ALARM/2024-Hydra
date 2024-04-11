@@ -294,6 +294,9 @@ public class RobotContainer {
             () -> {
                 // TODO return a ChassisSpeeds influence vector
                 // This should have full influence (1, 1, 1) for auto mode but no influence (0, 0, 0) for teleop mode
+                if(!DriverStation.isAutonomous()){
+                    return new ChassisSpeeds();
+                }
                 return pathPlannerInfluence;
             }
         );

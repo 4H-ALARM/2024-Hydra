@@ -2,6 +2,7 @@ package frc.robot.containers;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.MathUtil;
@@ -165,6 +166,13 @@ public class RobotContainer {
         shuffleNote = new ShuffleNote(IndexerSubsystem, ShooterSubsystem);
         secondprepareShootCommand = new PrepareShootCommandGroup(ArmSubsystem, IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, pilot);
         passNoteCommand = new PassNote(ShooterSubsystem);
+
+
+
+
+        NamedCommands.registerCommand("shoot", new ShootAuto(ShooterSubsystem, IndexerSubsystem));
+        NamedCommands.registerCommand("rev", new RevAuto(ShooterSubsystem));
+        NamedCommands.registerCommand("intake", new IntakeCommandGroup(IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, LightSubsystem, copilot));
 
         // Influence vectors for blended control
         ControlVector driverActive = ControlVector.fromFieldRelative(1.0, 1.0, 1.0).setSwerveRobotX(0.5).setSwerveRobotY(0.5);

@@ -171,6 +171,14 @@ public class Swerve extends SubsystemBase {
         targetPositionalAngle = angle;
     }
 
+    public void iterateSetpoint(double angle) {
+        targetPositionalAngle = targetPositionalAngle + angle;
+    }
+
+    public void zeroTargetAngle() {
+        targetPositionalAngle = getHeading().getDegrees();
+    }
+
     @Override
     public void periodic() {
         swerveOdometry.update(getGyroYaw(), getModulePositions());

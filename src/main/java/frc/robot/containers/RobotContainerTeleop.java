@@ -206,28 +206,41 @@ public class RobotContainerTeleop {
                     double X = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 4.5;
                     double Y = MathUtil.applyDeadband(-pilot.getRawAxis(LeftYAxis), 0.1) * 4.5;
                     double rot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 5;
-                    if (pilotLeftBumper.getAsBoolean()) {
-                        return ControlVector.fromRobotRelative(-X, -Y, rot);
-                    }
-                    if (rot == 0) {
-                        if (pilotPOVup.getAsBoolean()) {
-                            SwerveSubsystem.setTargetAngle(0);
-                            rot = SwerveSubsystem.getPowerToTargetAngle();
+                    if (rot != 0 ) {
+                        SwerveSubsystem.iterateSetpoint(rot);
+                    } else {
+                        if (pilotLeftBumper.getAsBoolean()) {
+                            return ControlVector.fromRobotRelative(-X, -Y, rot);
                         }
-                        if (pilotPOVleft.getAsBoolean()) {
-                            SwerveSubsystem.setTargetAngle(270);
-                            rot = SwerveSubsystem.getPowerToTargetAngle();
-                        }
-                        if (pilotPOVright.getAsBoolean()) {
-                            SwerveSubsystem.setTargetAngle(90);
-                            rot = SwerveSubsystem.getPowerToTargetAngle();
-                        }
-                        if (pilotPOVdown.getAsBoolean()) {
-                            SwerveSubsystem.setTargetAngle(180);
-                            rot = SwerveSubsystem.getPowerToTargetAngle();
+                        if (rot == 0) {
+                            if (pilotPOVup.getAsBoolean()) {
+                                SwerveSubsystem.setTargetAngle(0);
+                                rot = SwerveSubsystem.getPowerToTargetAngle();
+                                return ControlVector.fromFieldRelative(X, Y, rot);
+                            }
+                            if (pilotPOVleft.getAsBoolean()) {
+                                SwerveSubsystem.setTargetAngle(270);
+                                rot = SwerveSubsystem.getPowerToTargetAngle();
+                                return ControlVector.fromFieldRelative(X, Y, rot);
+                            }
+                            if (pilotPOVright.getAsBoolean()) {
+                                SwerveSubsystem.setTargetAngle(90);
+                                rot = SwerveSubsystem.getPowerToTargetAngle();
+                                return ControlVector.fromFieldRelative(X, Y, rot);
+                            }
+                            if (pilotPOVdown.getAsBoolean()) {
+                                SwerveSubsystem.setTargetAngle(180);
+                                rot = SwerveSubsystem.getPowerToTargetAngle();
+                                return ControlVector.fromFieldRelative(X, Y, rot);
+                            }
+                            SwerveSubsystem.zeroTargetAngle();;
+                            rot = 0;
+                            return ControlVector.fromFieldRelative(X, Y, rot);
                         }
                     }
                     return ControlVector.fromFieldRelative(X, Y, rot);
+                    
+                    
                     
                 },
                 // TValue describes how much influence the Teleop Driver component has

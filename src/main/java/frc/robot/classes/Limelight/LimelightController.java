@@ -63,6 +63,10 @@ public class LimelightController {
         return limelightDegrees / 27.0;
     }
 
+    public double getLatency() {
+        return LimelightHelpers.getLatency_Pipeline(llName);
+    }
+
 
 
     

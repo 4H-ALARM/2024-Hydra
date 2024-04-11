@@ -17,6 +17,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -27,6 +28,9 @@ public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
+    private PIDController PositionalPIDController;
+    private double targetPositionalAngle;
+    private double powerToTargetAngle;
 
     private ChassisSpeeds latestSpeeds;
 
@@ -48,6 +52,7 @@ public class Swerve extends SubsystemBase {
     public Swerve(SwerveModule[] modules,Pigeon2 gyro) {
         this.mSwerveMods = modules;
         this.gyro = gyro;
+        this.PositionalPIDController = new PIDController(1, 0, 0);
 
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         gyro.setYaw(0);
@@ -158,10 +163,17 @@ public class Swerve extends SubsystemBase {
         }
     }
 
+    public double getPowerToTargetAngle() {
+        return powerToTargetAngle;
+    }
+
+    public void setTargetAngle(double angle) {
+        targetPositionalAngle = angle;
+    }
+
     @Override
     public void periodic() {
         swerveOdometry.update(getGyroYaw(), getModulePositions());
-
-
+        powerToTargetAngle = this.PositionalPIDController.calculate(getHeading().getDegrees(), targetPositionalAngle);
     }
 }

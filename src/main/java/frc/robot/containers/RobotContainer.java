@@ -1,6 +1,7 @@
 package frc.robot.containers;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.fasterxml.jackson.core.sym.Name;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -167,12 +168,13 @@ public class RobotContainer {
         secondprepareShootCommand = new PrepareShootCommandGroup(ArmSubsystem, IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, pilot);
         passNoteCommand = new PassNote(ShooterSubsystem);
 
-
-
-
+        NamedCommands.registerCommand("IntakeNote", new IntakeCommandGroup(IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, LightSubsystem, copilot));
+        NamedCommands.registerCommand("Rev", new RevAuto(ShooterSubsystem));
         NamedCommands.registerCommand("shoot", new ShootAuto(ShooterSubsystem, IndexerSubsystem));
-        NamedCommands.registerCommand("rev", new RevAuto(ShooterSubsystem));
-        NamedCommands.registerCommand("intake", new IntakeCommandGroup(IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, LightSubsystem, copilot));
+        NamedCommands.registerCommand("seekNote", seekNote());
+        NamedCommands.registerCommand("seekSpeaker", seekSpeaker());
+        NamedCommands.registerCommand("movetoNote", seekPickupNote());
+
 
         // Influence vectors for blended control
         ControlVector driverActive = ControlVector.fromFieldRelative(1.0, 1.0, 1.0).setSwerveRobotX(0.5).setSwerveRobotY(0.5);

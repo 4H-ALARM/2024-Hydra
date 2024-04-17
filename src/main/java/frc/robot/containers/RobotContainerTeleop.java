@@ -80,6 +80,10 @@ public class RobotContainerTeleop {
     private final Trigger pilotPOVleft = pilot.povLeft();
     private final Trigger pilotPOVright = pilot.povRight();
     private final Trigger pilotPOVdown = pilot.povDown();
+    private final Trigger pilotPOVupright = pilot.povUpRight();
+    private final Trigger pilotPOVupleft = pilot.povUpLeft();
+    private final Trigger pilotPOVdownright = pilot.povDownRight();
+    private final Trigger pilotPOVdownleft = pilot.povDownLeft();
 
     private final Trigger copilotPOVup = copilot.povUp();
     private final Trigger copilotPOVleft = copilot.povLeft();
@@ -105,6 +109,7 @@ public class RobotContainerTeleop {
     private final ToggleHandler shootAimOverideToggle;
     private final ToggleHandler intakeAimOverideToggle;
     private final ToggleHandler beamBreakToggle;
+    private final ToggleHandler povControlToggle;
     
     //private final AutoCommands autoCommandsConstructor;
 
@@ -132,6 +137,7 @@ public class RobotContainerTeleop {
         shootAimOverideToggle = new ToggleHandler();
         intakeAimOverideToggle = new ToggleHandler();
         beamBreakToggle = new ToggleHandler();
+        povControlToggle = new ToggleHandler();
         Pigeon2 gyro = new Pigeon2(krakenTalonConstants.Swerve.pigeonID);
         colorSensorController = new ColorSensorController(Constants.colorSensorConfig, beamBreakToggle);
 
@@ -215,24 +221,6 @@ public class RobotContainerTeleop {
                     if (pilotLeftBumper.getAsBoolean()) {
                         return ControlVector.fromRobotRelative(-X, -Y, rot);
                     }
-                    if (rot == 0) {
-                        if (pilotPOVup.getAsBoolean()) {
-                            SwerveSubsystem.setTargetAngle(0);
-                            rot = SwerveSubsystem.getPowerToTargetAngle();
-                        }
-                        if (pilotPOVleft.getAsBoolean()) {
-                            SwerveSubsystem.setTargetAngle(270);
-                            rot = SwerveSubsystem.getPowerToTargetAngle();
-                        }
-                        if (pilotPOVright.getAsBoolean()) {
-                            SwerveSubsystem.setTargetAngle(90);
-                            rot = SwerveSubsystem.getPowerToTargetAngle();
-                        }
-                        if (pilotPOVdown.getAsBoolean()) {
-                            SwerveSubsystem.setTargetAngle(180);
-                            rot = SwerveSubsystem.getPowerToTargetAngle();
-                        }
-                    }
                     return ControlVector.fromFieldRelative(X, Y, rot);
                     
                 },
@@ -246,6 +234,52 @@ public class RobotContainerTeleop {
                     return armBlend;
                 }
         );
+
+        blendedControl.addComponent(
+            () -> {
+                double rot = 0;
+                if (pilotPOVup.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(0);
+                    rot = SwerveSubsystem.getPowerToTargetAngle();
+                }
+                if (pilotPOVleft.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(270);
+                    rot = SwerveSubsystem.getPowerToTargetAngle();
+                }
+                if (pilotPOVright.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(90);
+                    rot = SwerveSubsystem.getPowerToTargetAngle();
+                }
+                if (pilotPOVdown.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(180);
+                    rot = SwerveSubsystem.getPowerToTargetAngle();
+                }
+                if (pilotPOVupright.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(35);
+                }
+
+                if (pilotPOVupleft.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(35);
+                }
+
+                if (pilotPOVdownright.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(35);
+                }
+
+                if (pilotPOVdownleft.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(35);
+                }
+
+                return new ControlVector().setSwerveRotation(rot);
+            }, 
+            () -> {
+                if (povControlToggle.get()) {
+                    return new ControlVector().setSwerveRotation(0);
+                }
+                return new ControlVector().setSwerveRotation(1);
+            }
+        );
+
         blendedControl.addComponent(
                 () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getNoteAimRotationPower()),
                 () -> {

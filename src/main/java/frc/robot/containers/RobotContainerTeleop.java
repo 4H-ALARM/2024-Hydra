@@ -128,6 +128,9 @@ public class RobotContainerTeleop {
     private final PassNote passNote;
 
 
+    private double autoPOVAngle;
+    private ControlVector AutoPOVInfluence;
+
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
@@ -238,6 +241,10 @@ public class RobotContainerTeleop {
         blendedControl.addComponent(
             () -> {
                 double rot = 0;
+                if (DriverStation.isAutonomousEnabled()) {
+                    SwerveSubsystem.setTargetAngle(rot);
+                    rot = SwerveSubsystem.getPowerToTargetAngle();
+                }
                 if (pilotPOVup.getAsBoolean()) {
                     SwerveSubsystem.setTargetAngle(0);
                     rot = SwerveSubsystem.getPowerToTargetAngle();
@@ -273,6 +280,7 @@ public class RobotContainerTeleop {
                 return new ControlVector().setSwerveRotation(rot);
             }, 
             () -> {
+
                 if (povControlToggle.get()) {
                     return new ControlVector().setSwerveRotation(0);
                 }

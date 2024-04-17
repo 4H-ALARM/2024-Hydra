@@ -37,6 +37,7 @@ import frc.robot.commands.Indexer.FeedNote;
 import frc.robot.commands.Intake.IntakeNote;
 import frc.robot.commands.Intake.RejectNoteIntake;
 import frc.robot.commands.Shooter.PassNote;
+import frc.robot.commands.Shooter.ShootAmp;
 import frc.robot.hybrid.BlendedControl;
 import frc.robot.hybrid.HybridModes;
 import frc.robot.hybrid.ControlVector;
@@ -84,7 +85,7 @@ public class RobotContainerTeleop {
     private final Arm ArmSubsystem;
     private final Intake IntakeSubsystem;
     private final Shooter ShooterSubsystem;
-    // private final Climber ClimberSubsystem;
+    private final Climber ClimberSubsystem;
     private final Indexer IndexerSubsystem;
     private final Light LightSubsystem;
     private final Vision VisionSubsystem;
@@ -111,8 +112,9 @@ public class RobotContainerTeleop {
     private final CpxSet cpxOn;
     private final CpxSet cpxOff;
     private final PassNote passNoteCommand;
-
+    private final ShootAmp shootAmp;
     private final ShuffleNote shuffleNote;
+    private final PassNote passNote;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -137,7 +139,7 @@ public class RobotContainerTeleop {
         IntakeSubsystem = new Intake(Constants.intakeConfig, colorSensorController);
         ShooterSubsystem = new Shooter(Constants.shooterConfig);
         IndexerSubsystem = new Indexer(Constants.indexerConfig);
-        //ClimberSubsystem = new Climber(Constants.climberConfig, robotConfig.dashboardConfig);
+        ClimberSubsystem = new Climber(Constants.climberConfig, robotConfig.dashboardConfig);
         LightSubsystem = new Light(Constants.lightConfig, colorSensorController);
         VisionSubsystem = new Vision(Constants.visionConfig, alliance);
         CPXSubsystem = new CPX(3); // TODO create CpxConfig
@@ -156,6 +158,8 @@ public class RobotContainerTeleop {
         shuffleNote = new ShuffleNote(IndexerSubsystem, ShooterSubsystem);
         secondprepareShootCommand = new PrepareShootCommandGroup(ArmSubsystem, IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, pilot);
         passNoteCommand = new PassNote(ShooterSubsystem);
+        shootAmp = new ShootAmp(ShooterSubsystem);
+        passNote = new PassNote(ShooterSubsystem);
 
 
         /* Command Constructor for Autos */
@@ -305,9 +309,9 @@ public class RobotContainerTeleop {
         HybridSwerve hybridSwerve = new HybridSwerve(SwerveSubsystem, blendedControl);
         SwerveSubsystem.setDefaultCommand(hybridSwerve);
 
-        // ClimberSubsystem.setDefaultCommand(
-        //         new InstantCommand(() -> ClimberSubsystem.joystickControl(MathUtil.applyDeadband(copilot.getRawAxis(RightYAxis), 0.1)), ClimberSubsystem)
-        // );
+        ClimberSubsystem.setDefaultCommand(
+                new InstantCommand(() -> ClimberSubsystem.joystickControl(MathUtil.applyDeadband(copilot.getRawAxis(RightYAxis), 0.1)), ClimberSubsystem)
+        );
 
         ArmSubsystem.setDefaultCommand(new InstantCommand(() -> {
             ControlVector control = blendedControl.solve();
@@ -321,7 +325,7 @@ public class RobotContainerTeleop {
     private void configureButtonBindings() {
         /* pilot Buttons */
         pilotLeftTrigger.onTrue(intakeCommand);
-        pilotRightTrigger.whileTrue(prepareShootCommand);
+        pilotRightTrigger.whileTrue(passNote);
         pilotRightBumper.onTrue(new SequentialCommandGroup(feedNoteCommand.withTimeout(1), new InstantCommand(LightSubsystem::setWhite)));
         pilotaButton.whileTrue(rejectNoteIntakeCommand);
         pilotyButton.onTrue(new InstantCommand(SwerveSubsystem::zeroHeading));
@@ -335,6 +339,7 @@ public class RobotContainerTeleop {
         copilotPOVright.onTrue(new InstantCommand(() -> beamBreakToggle.toggle()));
         copilotRightTrigger.whileTrue(secondprepareShootCommand);
         copilotaButton.onTrue(shuffleNote);
+        copilotLeftTrigger.whileTrue(shootAmp);
         
     }
     public Command getAutonomousCommand(AutonomousOptions plan) {

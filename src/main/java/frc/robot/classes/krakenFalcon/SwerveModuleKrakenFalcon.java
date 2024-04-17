@@ -40,6 +40,7 @@ public class SwerveModuleKrakenFalcon implements SwerveModule {
 
     private int frameCount = 0;
     private static final int frameReset = 10;
+    private final boolean FOCEnable;
 
     public SwerveModuleKrakenFalcon(CtreConfigs ctreConfigs, SwerveModuleConfig moduleConfig, int moduleNumber) {
         this.ctreConfigs = ctreConfigs;
@@ -61,6 +62,8 @@ public class SwerveModuleKrakenFalcon implements SwerveModule {
         mDriveMotor.setInverted(moduleConfig.driveInvert);
         mDriveMotor.getConfigurator().apply(ctreConfigs.swerveDriveFXConfig);
         mDriveMotor.getConfigurator().setPosition(0.0);
+
+        FOCEnable = false;
     }
 
     @Override
@@ -71,7 +74,7 @@ public class SwerveModuleKrakenFalcon implements SwerveModule {
 //        }
         //frameCount++;
         desiredState = SwerveModuleState.optimize(desiredState, getState().angle);
-        mAngleMotor.setControl(anglePosition.withPosition(desiredState.angle.getRotations()));
+        mAngleMotor.setControl(anglePosition.withPosition(desiredState.angle.getRotations()).withEnableFOC(FOCEnable));
         setSpeed(desiredState, isOpenLoop);
     }
 
@@ -120,12 +123,12 @@ public class SwerveModuleKrakenFalcon implements SwerveModule {
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
         if(isOpenLoop){
             driveDutyCycle.Output = desiredState.speedMetersPerSecond / krakenTalonConstants.Swerve.maxSpeed;
-            mDriveMotor.setControl(driveDutyCycle);
+            mDriveMotor.setControl(driveDutyCycle.withEnableFOC(FOCEnable));
         }
         else {
             driveVelocity.Velocity = Conversions.MPSToRPS(desiredState.speedMetersPerSecond, krakenTalonConstants.Swerve.driveTrainConfig.wheelCircumference);
             driveVelocity.FeedForward = driveFeedForward.calculate(desiredState.speedMetersPerSecond);
-            mDriveMotor.setControl(driveVelocity);
+            mDriveMotor.setControl(driveVelocity.withEnableFOC(FOCEnable));
         }
     }
 

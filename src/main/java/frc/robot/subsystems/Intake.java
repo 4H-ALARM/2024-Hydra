@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkMax;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.config.IntakeConfig;
 import frc.robot.classes.ColorSensorController;
@@ -41,6 +43,11 @@ public class Intake extends SubsystemBase {
 
     public boolean finishedIntaking() {
         return colorSensor.isSeen();
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putBoolean("isIntaked", colorSensor.isSeen());
     }
 
 }

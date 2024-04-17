@@ -143,6 +143,7 @@ public class RobotContainerTeleop {
         povControlToggle = new ToggleHandler();
         Pigeon2 gyro = new Pigeon2(krakenTalonConstants.Swerve.pigeonID);
         colorSensorController = new ColorSensorController(Constants.colorSensorConfig, beamBreakToggle);
+        AutoPOVInfluence = new ControlVector();
 
         DriverStation.Alliance alliance = DriverStation.Alliance.Blue;
         if (DriverStation.getAlliance().isPresent()) {
@@ -280,10 +281,13 @@ public class RobotContainerTeleop {
                 return new ControlVector().setSwerveRotation(rot);
             }, 
             () -> {
-
+                if (DriverStation.isAutonomousEnabled()) {
+                    return AutoPOVInfluence;
+                }
                 if (povControlToggle.get()) {
                     return new ControlVector().setSwerveRotation(0);
                 }
+                
                 return new ControlVector().setSwerveRotation(1);
             }
         );

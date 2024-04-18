@@ -315,11 +315,11 @@ public class RobotContainerTeleop {
                 new InstantCommand(() -> ClimberSubsystem.joystickControl(MathUtil.applyDeadband(copilot.getRawAxis(RightYAxis), 0.1), MathUtil.applyDeadband(copilot.getRawAxis(LeftYAxis), 0.1)), ClimberSubsystem)
         );
 
-//         ArmSubsystem.setDefaultCommand(new InstantCommand(() -> {
-//             ControlVector control = blendedControl.solve();
-//             ArmSubsystem.moveArm(control.armPower());
-// //             ArmSubsystem.moveArm(MathUtil.applyDeadband(copilot.getRawAxis(LeftYAxis), 0.1));
-//         }, ArmSubsystem));
+        ArmSubsystem.setDefaultCommand(new InstantCommand(() -> {
+            ControlVector control = blendedControl.solve();
+            ArmSubsystem.moveArm(control.armPower());
+//             ArmSubsystem.moveArm(MathUtil.applyDeadband(copilot.getRawAxis(LeftYAxis), 0.1));
+        }, ArmSubsystem));
 
         configureButtonBindings();
     }

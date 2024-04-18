@@ -35,7 +35,7 @@ public final class CtreConfigs {
         // swerveAngleFXConfig.CurrentLimits.SupplyCurrentThreshold = krakenTalonConstants.Swerve.angleCurrentLimit.currentThreshold;
         // swerveAngleFXConfig.CurrentLimits.SupplyTimeThreshold = krakenTalonConstants.Swerve.angleCurrentLimit.currentThresholdTime;
         // swerveAngleFXConfig.CurrentLimits.SupplyCurrentLimitEnable = krakenTalonConstants.Swerve.angleCurrentLimit.enableCurrentLimit;
-        swerveAngleFXConfig.CurrentLimits.StatorCurrentLimit = 20;
+        swerveAngleFXConfig.CurrentLimits.StatorCurrentLimit = 30;
         swerveAngleFXConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         
 
@@ -57,7 +57,7 @@ public final class CtreConfigs {
         // swerveDriveFXConfig.CurrentLimits.SupplyCurrentThreshold = krakenTalonConstants.Swerve.driveCurrentLimit.currentThreshold;
         // swerveDriveFXConfig.CurrentLimits.SupplyTimeThreshold = krakenTalonConstants.Swerve.driveCurrentLimit.currentThresholdTime;
         // swerveDriveFXConfig.CurrentLimits.SupplyCurrentLimitEnable = krakenTalonConstants.Swerve.driveCurrentLimit.enableCurrentLimit;
-        swerveDriveFXConfig.CurrentLimits.StatorCurrentLimit = 50;
+        swerveDriveFXConfig.CurrentLimits.StatorCurrentLimit = 60;
         swerveDriveFXConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
 

@@ -124,6 +124,6 @@ public class Arm extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("armAngle", armEncoder.getPosition());
-
+        SmartDashboard.putNumber("ArmPercent", percentRaised());
     }
 }

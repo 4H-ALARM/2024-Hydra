@@ -32,6 +32,7 @@ import frc.robot.commands.CommandGroups.IntakeCommands.ShuffleNote;
 import frc.robot.commands.CommandGroups.ShootCommands.PrepareShootCommandGroup;
 import frc.robot.commands.Drive.AutoSwerve;
 import frc.robot.commands.Drive.HybridSwerve;
+import frc.robot.commands.Shooter.ShootAmp;
 
 import frc.robot.commands.Indexer.FeedNote;
 import frc.robot.commands.Intake.IntakeNote;
@@ -115,6 +116,7 @@ public class RobotContainerTeleop {
     private final ShootAmp shootAmp;
     private final ShuffleNote shuffleNote;
     private final PassNote passNote;
+
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -202,9 +204,9 @@ public class RobotContainerTeleop {
                     // }
                     // return ControlVector.fromFieldRelative(fieldX, fieldY, rot).setSwerveRobotY(-robotY);
 
-                    double X = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 4.5;
-                    double Y = MathUtil.applyDeadband(-pilot.getRawAxis(LeftYAxis), 0.1) * 4.5;
-                    double rot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 5;
+                    double X = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 6.5;
+                    double Y = MathUtil.applyDeadband(-pilot.getRawAxis(LeftYAxis), 0.1) * 6.5;
+                    double rot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 6.5;
                     if (pilotLeftBumper.getAsBoolean()) {
                         return ControlVector.fromRobotRelative(-X, -Y, rot);
                     }
@@ -231,21 +233,21 @@ public class RobotContainerTeleop {
                     return modes.interpolate(modeIntakeAimInactive, modeIntakeAimActive, t);
                 }
         );
-        blendedControl.addComponent(
-                () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getAngleToShootAngle()),
-                () -> {
-                    double t = 0;
-                    double t1 = MathUtil.applyDeadband(pilot.getRawAxis(RightTriggerAxis), 0.1);
-                    double t2 = MathUtil.applyDeadband(copilot.getRawAxis(RightTriggerAxis), 0.1);
-                    SmartDashboard.putBoolean("modeIntakeAimActive", shootAimOverideToggle.get());
-                    if (shootAimOverideToggle.get()) {
-                        t = 0;
-                    } else {
-                        t = (t1 > t2) ? t1 : t2;
-                    }
-                    return modes.interpolate(modeShootAimInactive, modeShootAimActive, t);
-                }
-        );
+        // blendedControl.addComponent(
+        //         () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getAngleToShootAngle()),
+        //         () -> {
+        //             double t = 0;
+        //             double t1 = MathUtil.applyDeadband(pilot.getRawAxis(RightTriggerAxis), 0.1);
+        //             double t2 = MathUtil.applyDeadband(copilot.getRawAxis(RightTriggerAxis), 0.1);
+        //             SmartDashboard.putBoolean("modeIntakeAimActive", shootAimOverideToggle.get());
+        //             if (shootAimOverideToggle.get()) {
+        //                 t = 0;
+        //             } else {
+        //                 t = (t1 > t2) ? t1 : t2;
+        //             }
+        //             return modes.interpolate(modeShootAimInactive, modeShootAimActive, t);
+        //         }
+        // );
 
         // blendedControl.addComponent(
         //         () -> ControlVector.fromRobotRelative(0, VisionSubsystem.getAutoApproachPower(), 0),
@@ -310,14 +312,14 @@ public class RobotContainerTeleop {
         SwerveSubsystem.setDefaultCommand(hybridSwerve);
 
         ClimberSubsystem.setDefaultCommand(
-                new InstantCommand(() -> ClimberSubsystem.joystickControl(MathUtil.applyDeadband(copilot.getRawAxis(RightYAxis), 0.1)), ClimberSubsystem)
+                new InstantCommand(() -> ClimberSubsystem.joystickControl(MathUtil.applyDeadband(copilot.getRawAxis(RightYAxis), 0.1), MathUtil.applyDeadband(copilot.getRawAxis(LeftYAxis), 0.1)), ClimberSubsystem)
         );
 
-        ArmSubsystem.setDefaultCommand(new InstantCommand(() -> {
-            ControlVector control = blendedControl.solve();
-            ArmSubsystem.moveArm(control.armPower());
-//             ArmSubsystem.moveArm(MathUtil.applyDeadband(copilot.getRawAxis(LeftYAxis), 0.1));
-        }, ArmSubsystem));
+//         ArmSubsystem.setDefaultCommand(new InstantCommand(() -> {
+//             ControlVector control = blendedControl.solve();
+//             ArmSubsystem.moveArm(control.armPower());
+// //             ArmSubsystem.moveArm(MathUtil.applyDeadband(copilot.getRawAxis(LeftYAxis), 0.1));
+//         }, ArmSubsystem));
 
         configureButtonBindings();
     }
@@ -359,6 +361,8 @@ public class RobotContainerTeleop {
                 return threeNoteLeftAuto();
             case FOUR_NOTES:
                 return fourNoteAuto();
+            case TAXI:
+                return taxi();
             default:
                 return shootNote();
         }
@@ -392,11 +396,16 @@ public class RobotContainerTeleop {
         );
     }
 
+
+
+
+
+
     public Command scoreCenterNote() {
         Command backupAndIntake = new ParallelDeadlineGroup(
             backupToCenterNote(),
             sendNoteBack().withTimeout(0.5),
-            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(2)
+            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(10)
         );
 
         Command returnToSpeakerAndShuffle = new ParallelDeadlineGroup(
@@ -410,6 +419,13 @@ public class RobotContainerTeleop {
             returnToSpeakerAndShuffle.withTimeout(2.125),
             new ShuffleNote(IndexerSubsystem, ShooterSubsystem),
             shootNote()
+        );
+    }
+
+    public Command taxi(){
+        return new SequentialCommandGroup(
+            shootNote(),
+            new AutoSwerve(SwerveSubsystem, 0, -0.3, 0, false).withTimeout(10)
         );
     }
 

@@ -145,5 +145,6 @@ public class Vision {
 
         aimRotationPower = intakePID.calculate(intakeAverage.getOutput(), 0);
         angleToShootAngle = shootPID.calculate(shootAverage.getOutput()+shootsetpoint, 0);
+        SmartDashboard.putNumber("shootPID", getAngleToShootAngle());
     }
 }

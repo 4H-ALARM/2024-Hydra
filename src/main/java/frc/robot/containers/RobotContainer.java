@@ -169,12 +169,13 @@ public class RobotContainer {
         passNoteCommand = new PassNote(ShooterSubsystem);
 
         NamedCommands.registerCommand("IntakeNote", new IntakeCommandGroup(IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, LightSubsystem, copilot));
-        NamedCommands.registerCommand("Rev", new RevAuto(ShooterSubsystem));
-        NamedCommands.registerCommand("shoot", new ShootAuto(ShooterSubsystem, IndexerSubsystem));
+        NamedCommands.registerCommand("rev", rev());
+        NamedCommands.registerCommand("shoot", shoot());
         NamedCommands.registerCommand("seekNote", seekNote());
         NamedCommands.registerCommand("seekSpeaker", seekSpeaker());
         NamedCommands.registerCommand("movetoNote", seekPickupNote());
-
+        NamedCommands.registerCommand("shuffle", shuffle());
+        NamedCommands.registerCommand("pickup", pickup());
 
         // Influence vectors for blended control
         ControlVector driverActive = ControlVector.fromFieldRelative(1.0, 1.0, 1.0).setSwerveRobotX(0.5).setSwerveRobotY(0.5);

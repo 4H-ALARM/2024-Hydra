@@ -81,9 +81,9 @@ public class Vision {
     }
 
     public double getAngleToShootAngle() {
-        // if (shootLimelight.tagsSeen() == 0) {
-        //     return 0;
-        // }
+        if (shootLimelight.tagsSeen() == 0) {
+            return 0;
+        }
         return angleToShootAngle;
     }
 

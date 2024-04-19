@@ -228,12 +228,10 @@ public class RobotContainerTeleop {
                     double X = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 6.5;
                     double Y = MathUtil.applyDeadband(-pilot.getRawAxis(LeftYAxis), 0.1) * 6.5;
                     double pilotrot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 6.5;
-                    double copilotrot = MathUtil.applyDeadband(-copilot.getRawAxis(LeftXAxis), 0.1) * 6.5;
-                    double rot = copilotrot + pilotrot;
                     if (pilotLeftBumper.getAsBoolean()) {
-                        return ControlVector.fromRobotRelative(-X, -Y, rot);
+                        return ControlVector.fromRobotRelative(-X, -Y, pilotrot);
                     }
-                    return ControlVector.fromFieldRelative(X, Y, rot);
+                    return ControlVector.fromFieldRelative(X, Y, pilotrot);
                     
                 },
                 // TValue describes how much influence the Teleop Driver component has

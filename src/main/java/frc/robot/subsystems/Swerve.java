@@ -52,9 +52,9 @@ public class Swerve extends SubsystemBase {
     public Swerve(SwerveModule[] modules,Pigeon2 gyro) {
         this.mSwerveMods = modules;
         this.gyro = gyro;
-        this.PositionalPIDController = new PIDController(0.003, 0.001, 0);//(0.005, 0, 0);
+        this.PositionalPIDController = new PIDController(0.002, 0.000, 0.001);//(0.005, 0, 0);
         this.PositionalPIDController.enableContinuousInput(0, 360);
-        this.PositionalPIDController.setTolerance(5);
+        this.PositionalPIDController.setTolerance(0);
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         gyro.setYaw(0);
         swerveOdometry = new SwerveDriveOdometry(krakenTalonConstants.Swerve.driveTrainConfig.kinematics, getGyroYaw(), getModulePositions());

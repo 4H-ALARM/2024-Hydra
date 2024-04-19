@@ -501,7 +501,7 @@ public class RobotContainerTeleop {
     public Command taxi(){
         return new SequentialCommandGroup(
             shootNote(),
-            new AutoSwerve(SwerveSubsystem, 0, -0.3, 0, false).withTimeout(10)
+            new AutoSwerve(SwerveSubsystem, 0, -0.3, 0, false).withTimeout(15)
         );
     }
 

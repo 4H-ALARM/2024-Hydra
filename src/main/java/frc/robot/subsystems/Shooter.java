@@ -4,6 +4,8 @@ import com.revrobotics.*;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.lib.config.DashboardConfig;
 import frc.lib.config.ShooterConfig;
 
 public class Shooter extends SubsystemBase {
@@ -28,8 +30,11 @@ public class Shooter extends SubsystemBase {
         shooterTopMotor.set(0.45);
     }
 
-    public void passNoteShooter() {
-        shooterTopMotor.set(0.45);
+    public void passNoteShooter(CommandXboxController copilot) {
+        if (copilot.rightTrigger().getAsBoolean()) {
+            shooterTopMotor.set(0.45);
+        }
+        shooterTopMotor.set(0.5);
     }
 
     public void stopShooter() {

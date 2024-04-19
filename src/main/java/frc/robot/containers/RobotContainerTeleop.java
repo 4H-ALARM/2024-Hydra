@@ -75,6 +75,10 @@ public class RobotContainerTeleop {
     private final Trigger pilotyButton = pilot.y();
     private final Trigger pilotaButton = pilot.a();
     private final Trigger copilotaButton = copilot.a();
+    private final Trigger copilotxButton = copilot.x();
+    private final Trigger copilotyButton = copilot.y();
+    private final Trigger copilotbButton = copilot.b();
+
 
     private final Trigger pilotPOVup = pilot.povUp();
     private final Trigger pilotPOVleft = pilot.povLeft();
@@ -118,14 +122,15 @@ public class RobotContainerTeleop {
     private final PrepareShootCommandGroup prepareShootCommand;
     private final PrepareShootCommandGroup secondprepareShootCommand;
     private final FeedNote feedNoteCommand;
+    private final FeedNote feedNoteCopilot;
     private final SendBackCommandGroup manualFeedBackCommand;
     private final RejectNoteIntake rejectNoteIntakeCommand;
     private final CpxSet cpxOn;
     private final CpxSet cpxOff;
-    private final PassNote passNoteCommand;
     private final ShootAmp shootAmp;
     private final ShuffleNote shuffleNote;
     private final PassNote passNote;
+    private final PassNote passNote2;
 
 
     private double autoPOVAngle;
@@ -174,9 +179,10 @@ public class RobotContainerTeleop {
         cpxOff = new CpxSet(CPXSubsystem, false);
         shuffleNote = new ShuffleNote(IndexerSubsystem, ShooterSubsystem);
         secondprepareShootCommand = new PrepareShootCommandGroup(ArmSubsystem, IndexerSubsystem, IntakeSubsystem, ShooterSubsystem, pilot);
-        passNoteCommand = new PassNote(ShooterSubsystem);
         shootAmp = new ShootAmp(ShooterSubsystem);
-        passNote = new PassNote(ShooterSubsystem);
+        passNote = new PassNote(ShooterSubsystem, copilot);
+        feedNoteCopilot = new FeedNote(IndexerSubsystem, copilot);
+        passNote2 = new PassNote(ShooterSubsystem, copilot);
 
 
         /* Command Constructor for Autos */
@@ -359,10 +365,10 @@ public class RobotContainerTeleop {
                         ArmSubsystem.setControlType(true);
                         ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(Constants.armConfig.ampAngle));
                     }
-                    if (copilotLeftBumper.getAsBoolean()){
-                        ArmSubsystem.setControlType(false);
-                        ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(VisionSubsystem.getArmAngleForShoot()));
-                    }
+                    // if (copilotLeftBumper.getAsBoolean()){
+                    //     ArmSubsystem.setControlType(false);
+                    //     ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(VisionSubsystem.getArmAngleForShoot()));
+                    // }
                     if(pilotRightTrigger.getAsBoolean() && !copilotLeftTrigger.getAsBoolean()) {
                         ArmSubsystem.setControlType(false);
                         ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(VisionSubsystem.getArmAngleForShoot()));
@@ -413,7 +419,8 @@ public class RobotContainerTeleop {
         copilotRightTrigger.whileTrue(secondprepareShootCommand);
         copilotaButton.onTrue(shuffleNote);
         copilotLeftTrigger.whileTrue(shootAmp);
-        
+        copilotxButton.onTrue(new SequentialCommandGroup(feedNoteCopilot.withTimeout(1), new InstantCommand(LightSubsystem::setWhite)));
+        copilotLeftBumper.whileTrue(passNote2);
     }
     public Command getAutonomousCommand(AutonomousOptions plan) {
         switch (plan) {

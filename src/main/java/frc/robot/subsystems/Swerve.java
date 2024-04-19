@@ -52,7 +52,7 @@ public class Swerve extends SubsystemBase {
     public Swerve(SwerveModule[] modules,Pigeon2 gyro) {
         this.mSwerveMods = modules;
         this.gyro = gyro;
-        this.PositionalPIDController = new PIDController(1, 0, 0);
+        this.PositionalPIDController = new PIDController(0.1, 0, 0);
         this.PositionalPIDController.enableContinuousInput(0, 360);
 
         gyro.getConfigurator().apply(new Pigeon2Configuration());

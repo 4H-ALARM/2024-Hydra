@@ -241,51 +241,51 @@ public class RobotContainerTeleop {
 
         blendedControl.addComponent(
             () -> {
-                double rot = 0;
                 if (DriverStation.isAutonomousEnabled()) {
-                    SwerveSubsystem.setTargetAngle(rot);
-                    rot = SwerveSubsystem.getPowerToTargetAngle();
+                    return new ControlVector();
                 }
                 if (pilotPOVup.getAsBoolean()) {
                     SwerveSubsystem.setTargetAngle(0);
-                    rot = SwerveSubsystem.getPowerToTargetAngle();
+                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
                 }
-                if (pilotPOVleft.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(270);
-                    rot = SwerveSubsystem.getPowerToTargetAngle();
+                if (pilotPOVupright.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(45);
+                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
                 }
                 if (pilotPOVright.getAsBoolean()) {
                     SwerveSubsystem.setTargetAngle(90);
-                    rot = SwerveSubsystem.getPowerToTargetAngle();
+                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
+                }
+                if (pilotPOVdownright.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(135);
+                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
                 }
                 if (pilotPOVdown.getAsBoolean()) {
                     SwerveSubsystem.setTargetAngle(180);
-                    rot = SwerveSubsystem.getPowerToTargetAngle();
-                }
-                if (pilotPOVupright.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(35);
-                }
-
-                if (pilotPOVupleft.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(35);
-                }
-
-                if (pilotPOVdownright.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(35);
+                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
                 }
 
                 if (pilotPOVdownleft.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(35);
+                    SwerveSubsystem.setTargetAngle(225);
+                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
+                }
+                if (pilotPOVleft.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(270);
+                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
+                }
+                if (pilotPOVupleft.getAsBoolean()) {
+                    SwerveSubsystem.setTargetAngle(315);
+                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
                 }
 
-                return new ControlVector().setSwerveRotation(rot);
+                return new ControlVector();
             }, 
             () -> {
                 if (DriverStation.isAutonomousEnabled()) {
                     return AutoPOVInfluence;
                 }
                 if (povControlToggle.get()) {
-                    return new ControlVector().setSwerveRotation(0);
+                    return new ControlVector();
                 }
                 
                 return new ControlVector().setSwerveRotation(1);

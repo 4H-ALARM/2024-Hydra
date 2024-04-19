@@ -9,9 +9,6 @@ import frc.lib.config.ShooterConfig;
 public class Shooter extends SubsystemBase {
     private final CANSparkFlex shooterTopMotor;
     private final CANSparkFlex shooterBottomMotor;
-    private PIDController vPidController;
-    private final double velocitySetpoint;
-    private double pidout;
 
     public final ShooterConfig config;
     public Shooter(ShooterConfig config) {
@@ -21,22 +18,14 @@ public class Shooter extends SubsystemBase {
         shooterBottomMotor = new CANSparkFlex(this.config.shooterBottomMotor, CANSparkLowLevel.MotorType.kBrushless);
         shooterBottomMotor.follow(shooterTopMotor);
 
-        vPidController = new PIDController(1, 0, 0);
-
-        velocitySetpoint = 6000;
-
 
     }
 
     public void startShooter() {
-<<<<<<< HEAD
         shooterTopMotor.set(0.55);
     }
     public void startAMPShooter() {
         shooterTopMotor.set(0.45);
-=======
-        shooterTopMotor.set(pidout);
->>>>>>> 8f94ce5 (s)
     }
 
     public void passNoteShooter() {
@@ -55,7 +44,7 @@ public class Shooter extends SubsystemBase {
     }
 
     public boolean isRevved() {
-        return shooterTopMotor.getEncoder().getVelocity() > (velocitySetpoint - 200) && shooterTopMotor.getEncoder().getVelocity() < (velocitySetpoint + 200);
+        return false; //shooterTopMotor.getEncoder().getVelocity() > (velocitySetpoint - 200) && shooterTopMotor.getEncoder().getVelocity() < (velocitySetpoint + 200);
     }
 
 
@@ -68,7 +57,6 @@ public class Shooter extends SubsystemBase {
 
     @Override
     public void periodic() {
-        pidout = vPidController.calculate(shooterTopMotor.getEncoder().getVelocity(), velocitySetpoint);
     }
 
 

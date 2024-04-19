@@ -221,7 +221,9 @@ public class RobotContainerTeleop {
 
                     double X = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 6.5;
                     double Y = MathUtil.applyDeadband(-pilot.getRawAxis(LeftYAxis), 0.1) * 6.5;
-                    double rot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 6.5;
+                    double pilotrot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 6.5;
+                    double copilotrot = MathUtil.applyDeadband(-copilot.getRawAxis(LeftXAxis), 0.1) * 6.5;
+                    double rot = copilotrot + pilotrot;
                     if (pilotLeftBumper.getAsBoolean()) {
                         return ControlVector.fromRobotRelative(-X, -Y, rot);
                     }
@@ -381,7 +383,7 @@ public class RobotContainerTeleop {
         SwerveSubsystem.setDefaultCommand(hybridSwerve);
 
         ClimberSubsystem.setDefaultCommand(
-                new InstantCommand(() -> ClimberSubsystem.joystickControl(MathUtil.applyDeadband(copilot.getRawAxis(RightYAxis), 0.1), MathUtil.applyDeadband(copilot.getRawAxis(LeftYAxis), 0.1)), ClimberSubsystem)
+                new InstantCommand(() -> ClimberSubsystem.joystickControl(MathUtil.applyDeadband(copilot.getRawAxis(RightYAxis), 0.1)), ClimberSubsystem)
         );
 
         ArmSubsystem.setDefaultCommand(new InstantCommand(() -> {

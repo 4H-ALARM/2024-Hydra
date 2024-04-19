@@ -87,9 +87,9 @@ public class Climber extends SubsystemBase {
         leftClimberMotor.setControl(new Follower(config.rightClimberMotorID, false));
     }
 
-    public void joystickControl(double Rightinput, double LeftInput) {
-        rightClimberMove(Rightinput);
-        leftClimberMove(LeftInput);
+    public void joystickControl(double input) {
+        rightClimberMove(input);
+        leftClimberMove(input);
     }
 
     // Assume positive is up and negative is down

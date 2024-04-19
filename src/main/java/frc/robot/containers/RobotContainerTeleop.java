@@ -233,21 +233,21 @@ public class RobotContainerTeleop {
                     return modes.interpolate(modeIntakeAimInactive, modeIntakeAimActive, t);
                 }
         );
-        // blendedControl.addComponent(
-        //         () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getAngleToShootAngle()),
-        //         () -> {
-        //             double t = 0;
-        //             double t1 = MathUtil.applyDeadband(pilot.getRawAxis(RightTriggerAxis), 0.1);
-        //             double t2 = MathUtil.applyDeadband(copilot.getRawAxis(RightTriggerAxis), 0.1);
-        //             SmartDashboard.putBoolean("modeIntakeAimActive", shootAimOverideToggle.get());
-        //             if (shootAimOverideToggle.get()) {
-        //                 t = 0;
-        //             } else {
-        //                 t = (t1 > t2) ? t1 : t2;
-        //             }
-        //             return modes.interpolate(modeShootAimInactive, modeShootAimActive, t);
-        //         }
-        // );
+        blendedControl.addComponent(
+                () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getAngleToShootAngle()),
+                () -> {
+                    double t = 0;
+                    double t1 = MathUtil.applyDeadband(pilot.getRawAxis(RightTriggerAxis), 0.1);
+                    double t2 = MathUtil.applyDeadband(copilot.getRawAxis(RightTriggerAxis), 0.1);
+                    SmartDashboard.putBoolean("modeIntakeAimActive", shootAimOverideToggle.get());
+                    if (shootAimOverideToggle.get()) {
+                        t = 0;
+                    } else {
+                        t = (t1 > t2) ? t1 : t2;
+                    }
+                    return modes.interpolate(modeShootAimInactive, modeShootAimActive, t);
+                }
+        );
 
         // blendedControl.addComponent(
         //         () -> ControlVector.fromRobotRelative(0, VisionSubsystem.getAutoApproachPower(), 0),
@@ -405,7 +405,7 @@ public class RobotContainerTeleop {
         Command backupAndIntake = new ParallelDeadlineGroup(
             backupToCenterNote(),
             sendNoteBack().withTimeout(0.5),
-            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(10)
+            new IntakeNoteCommandGroup(IntakeSubsystem, IndexerSubsystem).withTimeout(2)
         );
 
         Command returnToSpeakerAndShuffle = new ParallelDeadlineGroup(

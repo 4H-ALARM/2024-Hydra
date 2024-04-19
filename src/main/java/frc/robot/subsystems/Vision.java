@@ -81,9 +81,9 @@ public class Vision {
     }
 
     public double getAngleToShootAngle() {
-        if (shootLimelight.tagsSeen() == 0) {
-            return 0;
-        }
+        // if (shootLimelight.tagsSeen() == 0) {
+        //     return 0;
+        // }
         return angleToShootAngle;
     }
 
@@ -146,5 +146,6 @@ public class Vision {
         aimRotationPower = intakePID.calculate(intakeAverage.getOutput(), 0);
         angleToShootAngle = shootPID.calculate(shootAverage.getOutput()+shootsetpoint, 0);
         SmartDashboard.putNumber("shootPID", getAngleToShootAngle());
+        SmartDashboard.putNumber("tags seen", shootLimelight.tagsSeen());
     }
 }

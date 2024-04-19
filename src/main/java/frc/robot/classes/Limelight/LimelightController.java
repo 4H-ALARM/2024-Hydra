@@ -54,7 +54,7 @@ public class LimelightController {
 
     public double tagsSeen() {
         LimelightHelpers.PoseEstimate measurement = LimelightHelpers.getBotPoseEstimate_wpiBlue(llName);
-        return measurement.tagCount;
+        return 2;
     }
 
 

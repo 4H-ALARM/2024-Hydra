@@ -15,7 +15,6 @@ public class Robot extends TimedRobot {
     public final DashboardConfig dashboardConfig = new DashboardConfig();
     public final RobotConfig robotConfig = new RobotConfig(ctreConfigs, dashboardConfig);
     private Command m_autonomousCommand1;
-    private Command m_autonomousCommand2;
     private Command m_InitCommand;
     private RobotContainerTeleop mRobotContainer;
 
@@ -93,9 +92,8 @@ public class Robot extends TimedRobot {
         // teleop starts running. If you want the autonomous to
         // continue until interrupted by another command, remove
         // this line or comment it out.
-        if (m_autonomousCommand1 != null && m_autonomousCommand2 != null) {
+        if (m_autonomousCommand1 != null) {
             m_autonomousCommand1.cancel();
-            m_autonomousCommand2.cancel();
         }
     }
 

@@ -30,7 +30,7 @@ public class Shooter extends SubsystemBase {
     }
 
     public void passNoteShooter() {
-        shooterTopMotor.set(0.4);
+        shooterTopMotor.set(0.45);
     }
 
     public void stopShooter() {

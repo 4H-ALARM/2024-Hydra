@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Constants;
@@ -498,10 +499,17 @@ public class RobotContainerTeleop {
         );
     }
 
+    public Command waitCommand() {
+        return new Command() {
+            
+        };
+    }
+
     public Command taxi(){
         return new SequentialCommandGroup(
             shootNote(),
-            new AutoSwerve(SwerveSubsystem, 0, -0.3, 0, false).withTimeout(15)
+            waitCommand().withTimeout(3),
+            new AutoSwerve(SwerveSubsystem, 0, -0.4, 0, false).withTimeout(15)
         );
     }
 

@@ -75,6 +75,9 @@ public class RobotContainerTeleop {
 
     private final Trigger pilotyButton = pilot.y();
     private final Trigger pilotaButton = pilot.a();
+    private final Trigger pilotxButton = pilot.x();
+    private final Trigger pilotbButton = pilot.b();
+
     private final Trigger copilotaButton = copilot.a();
     private final Trigger copilotxButton = copilot.x();
     private final Trigger copilotyButton = copilot.y();
@@ -202,12 +205,12 @@ public class RobotContainerTeleop {
 
         // Each mode describes an amount of influence that may be applied to each control
         HybridModes modes = new HybridModes();
-        modes.addMode(modeDriverActive, ControlVector.fromFieldRelative(1.0, 1.0, 1.0).setSwerveRobotX(0.5).setSwerveRobotY(0.5));
-        modes.addMode(modeDriverInactive, ControlVector.fromFieldRelative(1.0, 0.5, 0.5).setSwerveRobotX(0.5).setSwerveRobotY(0.5));
+        modes.addMode(modeDriverActive, ControlVector.fromFieldRelative(1.0, 1.0, 1.0).setSwerveRobotX(0.0).setSwerveRobotY(0.0));
+        modes.addMode(modeDriverInactive, ControlVector.fromFieldRelative(1.0, 1.0, 1.0).setSwerveRobotX(0.0).setSwerveRobotY(0.0));
         modes.addMode(modeIntakeAimInactive, ControlVector.fromFieldRelative(0.0, 0.0, 0.0));
-        modes.addMode(modeIntakeAimActive, ControlVector.fromFieldRelative(0.0, 0.0, 1.0));
+        modes.addMode(modeIntakeAimActive, ControlVector.fromFieldRelative(0.0, 0.0, 0.0));
         modes.addMode(modeShootAimInactive, ControlVector.fromFieldRelative(0.0, 0.0, 0.0));
-        modes.addMode(modeShootAimActive, ControlVector.fromFieldRelative(0.0, 0.0, 1.0));
+        modes.addMode(modeShootAimActive, ControlVector.fromFieldRelative(0.0, 0.0, 0.0));
         // modes.addMode(modeShootDistanceInactive, ControlVector.fromRobotRelative(0, 0, 0));
         // modes.addMode(modeShootDistanceActive, ControlVector.fromRobotRelative(0,1, 0));
 
@@ -226,9 +229,9 @@ public class RobotContainerTeleop {
                     // }
                     // return ControlVector.fromFieldRelative(fieldX, fieldY, rot).setSwerveRobotY(-robotY);
 
-                    double X = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 6.5;
-                    double Y = MathUtil.applyDeadband(-pilot.getRawAxis(LeftYAxis), 0.1) * 6.5;
-                    double pilotrot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 6.5;
+                    double X = MathUtil.applyDeadband(-pilot.getRawAxis(LeftXAxis), 0.1) * 4.5;
+                    double Y = MathUtil.applyDeadband(-pilot.getRawAxis(LeftYAxis), 0.1) * 4.5;
+                    double pilotrot = MathUtil.applyDeadband(-pilot.getRawAxis(RightXAxis), 0.1) * 6;
                     if (pilotLeftBumper.getAsBoolean()) {
                         return ControlVector.fromRobotRelative(-X, -Y, pilotrot);
                     }
@@ -246,113 +249,6 @@ public class RobotContainerTeleop {
                 }
         );
 
-        blendedControl.addComponent(
-            () -> {
-                if (DriverStation.isAutonomousEnabled()) {
-                    return new ControlVector();
-                }
-                if (pilotPOVup.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(0);
-                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
-                }
-                if (pilotPOVupright.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(45);
-                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
-                }
-                if (pilotPOVright.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(90);
-                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
-                }
-                if (pilotPOVdownright.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(135);
-                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
-                }
-                if (pilotPOVdown.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(180);
-                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
-                }
-
-                if (pilotPOVdownleft.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(225);
-                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
-                }
-                if (pilotPOVleft.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(270);
-                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
-                }
-                if (pilotPOVupleft.getAsBoolean()) {
-                    SwerveSubsystem.setTargetAngle(315);
-                    return new ControlVector().setSwerveRotation(SwerveSubsystem.getPowerToTargetAngle());
-                }
-
-                return new ControlVector();
-            }, 
-            () -> {
-                if (DriverStation.isAutonomousEnabled()) {
-                    return AutoPOVInfluence;
-                }
-                if (povControlToggle.get()) {
-                    return new ControlVector();
-                }
-                
-                return new ControlVector().setSwerveRotation(1);
-            }
-        );
-
-        blendedControl.addComponent(
-                () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getNoteAimRotationPower()),
-                () -> {
-                    double t = MathUtil.applyDeadband(pilot.getRawAxis(LeftTriggerAxis), 0.1);
-                    if (intakeAimOverideToggle.get()) {
-                        t=0;
-                    }
-                    return modes.interpolate(modeIntakeAimInactive, modeIntakeAimActive, t);
-                }
-        );
-        blendedControl.addComponent(
-                () -> ControlVector.fromFieldRelative(0, 0, VisionSubsystem.getAngleToShootAngle()),
-                () -> {
-                    double t = 0;
-                    double t1 = MathUtil.applyDeadband(pilot.getRawAxis(RightTriggerAxis), 0.1);
-                    double t2 = MathUtil.applyDeadband(copilot.getRawAxis(RightTriggerAxis), 0.1);
-                    SmartDashboard.putBoolean("modeIntakeAimActive", shootAimOverideToggle.get());
-                    if (shootAimOverideToggle.get()) {
-                        t = 0;
-                    } else {
-                        t = (t1 > t2) ? t1 : t2;
-                    }
-                    return modes.interpolate(modeShootAimInactive, modeShootAimActive, t);
-                }
-        );
-
-        // blendedControl.addComponent(
-        //         () -> ControlVector.fromRobotRelative(0, VisionSubsystem.getAutoApproachPower(), 0),
-        //         () -> {
-        //             double t = MathUtil.applyDeadband(pilot.getRightTriggerAxis(), 0.2);
-        //             if (shortRangeOverrideToggle.get()) {
-        //                 t = 0;
-        //             }
-        //             ControlVector control = modes.interpolate(modeShootDistanceInactive, modeShootDistanceActive, t);
-        //             return control;
-        //         }
-        // );
-        PIDController gyroController = new PIDController(.1,0,0);
-        blendedControl.addComponent(
-                () -> {
-                    double rotation = gyroController.calculate(gyro.getRotation2d().getDegrees(),0);;
-                    return ControlVector.fromFieldRelative(0,0,rotation);
-                },
-                () -> {
-                    boolean active = false;
-                    if (active){
-                        // Full rotation control from gyro when D-Down
-                        return new ControlVector().setSwerveRotation(1);
-                    } else {
-                        // No rotation control from gyro when no D-Down
-                        return new ControlVector().setSwerveRotation(0);
-                    }
-                }
-        );
 
         // Long range auto-aiming: Lifting the arm
         blendedControl.addComponent(
@@ -360,7 +256,7 @@ public class RobotContainerTeleop {
                 () -> {
 //                    setpoint += copilot.getRawAxis(LeftYAxis);
                     ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(Constants.armConfig.intakeAngle));
-                    if (copilotLeftTrigger.getAsBoolean()) {
+                    if (pilotPOVup.getAsBoolean()) {
                         ArmSubsystem.setControlType(true);
                         ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(Constants.armConfig.ampAngle));
                     }
@@ -368,10 +264,10 @@ public class RobotContainerTeleop {
                     //     ArmSubsystem.setControlType(false);
                     //     ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(VisionSubsystem.getArmAngleForShoot()));
                     // }
-                    if(pilotRightTrigger.getAsBoolean() && !copilotLeftTrigger.getAsBoolean()) {
-                        ArmSubsystem.setControlType(false);
-                        ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(VisionSubsystem.getArmAngleForShoot()));
-                    }
+                    // if(pilotRightTrigger.getAsBoolean() && !copilotLeftTrigger.getAsBoolean()) {
+                    //     ArmSubsystem.setControlType(false);
+                    //     ArmSubsystem.setTargetAngle(Rotation2d.fromRotations(VisionSubsystem.getArmAngleForShoot()));
+                    // }
                     // Arm power from PID to target angle
                     double armPower = ArmSubsystem.getArmPowerToTarget();
                     return new ControlVector().setArmPower(armPower);
@@ -407,42 +303,24 @@ public class RobotContainerTeleop {
         pilotRightBumper.onTrue(new SequentialCommandGroup(feedNoteCommand.withTimeout(1), new InstantCommand(LightSubsystem::setWhite)));
         pilotaButton.whileTrue(rejectNoteIntakeCommand);
         pilotyButton.onTrue(new InstantCommand(SwerveSubsystem::zeroHeading));
+        //pilotbButton.whileTrue(shootAmp);
 
         /* Copilot Buttons */
-        copilotRightBumper.onTrue(manualFeedBackCommand.withTimeout(0.7));
+        pilotxButton.onTrue(manualFeedBackCommand.withTimeout(0.7));
         copilotPOVleft.onTrue(cpxOff);
         copilotPOVright.onTrue(cpxOn);
         copilotPOVup.onTrue(new InstantCommand(shootAimOverideToggle::toggle));
         copilotPOVdown.onTrue(new InstantCommand(intakeAimOverideToggle::toggle));
         copilotPOVright.onTrue(new InstantCommand(() -> beamBreakToggle.toggle()));
         copilotRightTrigger.whileTrue(secondprepareShootCommand);
-        copilotaButton.onTrue(shuffleNote);
-        copilotLeftTrigger.whileTrue(shootAmp);
+        pilotbButton.onTrue(shuffleNote);
+        //copilotLeftTrigger.whileTrue(shootAmp);
         copilotxButton.onTrue(new SequentialCommandGroup(feedNoteCopilot.withTimeout(1), new InstantCommand(LightSubsystem::setWhite)));
         copilotLeftBumper.whileTrue(passNote2);
     }
-    public Command getAutonomousCommand(AutonomousOptions plan) {
-        switch (plan) {
-            // case SHOOT_NOTE_MOVEBACK:
-            //     return 
-            // case RIGHTSPEAKERSIDESHOOTANDMOVEBACK:
-            //     return 
+    public Command getAutonomousCommand(AutonomousOptions plan) { 
 
-            case SHOOT_NOTE:
-                return shootNote();
-            case TWO_NOTE_CENTER:
-                return twoNoteCenterAuto();
-            case THREE_NOTES_RIGHT:
-                return threeNoteRightAuto();
-            case THREE_NOTES_LEFT:
-                return threeNoteLeftAuto();
-            case FOUR_NOTES:
-                return fourNoteAuto();
-            case TAXI:
-                return taxi();
-            default:
-                return shootNote();
-        }
+        return shootNote();
     }
 
 

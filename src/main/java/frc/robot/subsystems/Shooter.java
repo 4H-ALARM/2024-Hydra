@@ -24,7 +24,7 @@ public class Shooter extends SubsystemBase {
     }
 
     public void startShooter() {
-        shooterTopMotor.set(0.55);
+        shooterTopMotor.set(0.4);
     }
     public void startAMPShooter() {
         shooterTopMotor.set(0.45);

@@ -26,6 +26,10 @@ public class Shooter extends SubsystemBase {
         shooterTopMotor.set(0.5);
     }
 
+    public void startShooterAmp() {
+        shooterTopMotor.set(0.4);
+    }
+
     public void passNoteShooter() {
         shooterTopMotor.set(0.65);
     }

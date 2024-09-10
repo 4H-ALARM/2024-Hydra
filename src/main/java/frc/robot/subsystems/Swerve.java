@@ -1,5 +1,10 @@
 package frc.robot.subsystems;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.CtreConfigs;
@@ -53,6 +58,32 @@ public class Swerve extends SubsystemBase {
         gyro.setYaw(0);
         swerveOdometry = new SwerveDriveOdometry(krakenTalonConstants.Swerve.driveTrainConfig.kinematics, getGyroYaw(), getModulePositions());
         this.latestSpeeds = new ChassisSpeeds(0, 0,0);
+
+        AutoBuilder.configureHolonomic(
+                this::getPose, // Robot pose supplier
+                this::setPose, // Method to reset odometry (will be called if your auto has a starting pose)
+                this::getLatestSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+                this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+                new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+                        new PIDConstants(3.75, 0.4, 0.085), // Translation PID constants
+                        new PIDConstants(3.75, 0.4, 0.085), // Rotation PID constants
+                        4.5, // Max module speed, in m/s
+                        0.4, // Drive base radius in meters. Distance from robot center to furthest module.
+                        new ReplanningConfig() // Default path replanning config. See the API for the options here
+                ),
+                () -> {
+                    // Boolean supplier that controls when the path will be mirrored for the red alliance
+                    // This will flip the path being followed to the red side of the field.
+                    // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+                    var alliance = DriverStation.getAlliance();
+                    if (alliance.isPresent()) {
+                        return alliance.get() == DriverStation.Alliance.Red;
+                    }
+                    return false;
+                },
+                this // Reference to this subsystem to set requirements
+        );
     }
 
     public ChassisSpeeds getLatestSpeeds() {
@@ -74,13 +105,34 @@ public class Swerve extends SubsystemBase {
     }
 
     public void driveChassisSpeeds(ChassisSpeeds speeds, boolean isOpenLoop) {
-        this.latestSpeeds = speeds;
+
         SwerveModuleState[] swerveModuleStates = krakenTalonConstants.Swerve.driveTrainConfig.kinematics.toSwerveModuleStates(speeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, krakenTalonConstants.Swerve.maxSpeed);
 
         for (int i = 0; i < mSwerveMods.length; i++) {
             SwerveModule mod = mSwerveMods[i];
             mod.setDesiredState(swerveModuleStates[i], isOpenLoop);
+        }
+    }
+
+    public void driveRobotRelative(ChassisSpeeds speeds) {
+        boolean fieldRelative = true;
+        double x = speeds.vxMetersPerSecond;
+        double y = speeds.vyMetersPerSecond;
+        double rot = speeds.omegaRadiansPerSecond;
+
+        SwerveModuleState[] swerveModuleStates =
+                krakenTalonConstants.Swerve.driveTrainConfig.kinematics.toSwerveModuleStates(
+                        new ChassisSpeeds(
+                        (y),
+                        (-x),
+                        rot
+                        )
+                );
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, krakenTalonConstants.Swerve.maxSpeed);
+        this.latestSpeeds = speeds;
+        for(SwerveModule mod : mSwerveMods){
+            mod.setDesiredState(swerveModuleStates[mod.getModNumber()], true);
         }
     }
 
@@ -122,11 +174,28 @@ public class Swerve extends SubsystemBase {
 
     public Pose2d getPose() {
         Pose2d pose = swerveOdometry.getPoseMeters();
-        return pose;
+        return rotate90cw(pose);
     }
 
+    public Pose2d invertPose(Pose2d originalPose) {
+        return new Pose2d(new Translation2d((-originalPose.getX()), (-originalPose.getY())), originalPose.getRotation());
+
+    }
+
+    public Pose2d rotate90cw(Pose2d originalPose) {
+        return new Pose2d(new Translation2d((originalPose.getY()), (-originalPose.getX())), originalPose.getRotation());
+    }
+    public Pose2d rotate90ccw(Pose2d originalPose) {
+        return new Pose2d(new Translation2d((-originalPose.getY()), (originalPose.getX())), originalPose.getRotation());
+    }
+
+    /*public Pose2d getPosePathPlanner() {
+        Pose2d pose = new Pose2d(new Translation2d(swerveOdometry.getPoseMeters().))
+        return pose;
+    }*/
+
     public void setPose(Pose2d pose) {
-        swerveOdometry.resetPosition(getGyroYaw(), getModulePositions(), pose);
+        swerveOdometry.resetPosition(getGyroYaw(), getModulePositions(), rotate90ccw(pose));
     }
 
     public Rotation2d getHeading() {
@@ -162,6 +231,8 @@ public class Swerve extends SubsystemBase {
     public void periodic() {
         swerveOdometry.update(getGyroYaw(), getModulePositions());
 
+        Pose2d pose = getPose();
+        SmartDashboard.putNumberArray("Pose positions", new double[]{pose.getX(), pose.getY(), getGyroYaw().getDegrees()});
 
     }
 }

@@ -19,6 +19,7 @@ public interface SwerveModule {
     Rotation2d getRotation();
     SwerveModulePosition getPosition();
     SwerveModuleState getState();
+    int getModNumber();
 
     default void zeroEncoders(){}
     default void dashboardPeriodic() {}

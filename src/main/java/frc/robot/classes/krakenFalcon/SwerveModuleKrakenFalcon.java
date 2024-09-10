@@ -110,6 +110,11 @@ public class SwerveModuleKrakenFalcon implements SwerveModule {
     }
 
     @Override
+    public int getModNumber() {
+        return mModule;
+    }
+
+    @Override
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
                 Conversions.rotationsToMeters(mDriveMotor.getPosition().getValue(), krakenTalonConstants.Swerve.driveTrainConfig.wheelCircumference),

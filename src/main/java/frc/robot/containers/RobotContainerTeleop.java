@@ -1,6 +1,7 @@
 package frc.robot.containers;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -321,14 +322,14 @@ public class RobotContainerTeleop {
     private void configureButtonBindings() {
         /* pilot Buttons */
         pilotLeftTrigger.onTrue(intakeCommand);
-        pilotRightTrigger.whileTrue(prepareShootCommand);
+        pilotRightTrigger.whileTrue(new PathPlannerAuto("New Auto"));
         pilotRightBumper.onTrue(new SequentialCommandGroup(feedNoteCommand.withTimeout(1), new InstantCommand(LightSubsystem::setWhite)));
         pilotaButton.whileTrue(rejectNoteIntakeCommand);
         pilotyButton.onTrue(new InstantCommand(SwerveSubsystem::zeroHeading));
 
         /* Copilot Buttons */
         copilotRightBumper.onTrue(manualFeedBackCommand.withTimeout(0.7));
-        copilotPOVleft.onTrue(cpxOff);
+        //copilotPOVleft.whileTrue(new PathPlannerAuto("New Auto"));
         copilotPOVright.onTrue(cpxOn);
         copilotPOVup.onTrue(new InstantCommand(shootAimOverideToggle::toggle));
         copilotPOVdown.onTrue(new InstantCommand(intakeAimOverideToggle::toggle));

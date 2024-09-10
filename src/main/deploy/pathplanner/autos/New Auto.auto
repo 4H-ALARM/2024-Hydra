@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.9113560946263224,
-      "y": 6.961013421132389
+      "x": 2.234441105733733,
+      "y": 6.751808163277622
     },
-    "rotation": 0
+    "rotation": 0.0
   },
   "command": {
     "type": "sequential",
@@ -14,7 +14,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "go to note"
+            "pathName": "MoveForward"
           }
         },
         {
